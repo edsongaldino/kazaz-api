@@ -1,0 +1,101 @@
+name: CI/CD - Secretaria Concafras API
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-inscribo-api
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+  OWNER: edsongaldino
+  IMAGE_NAME: secretaria-concafras-api
+  TAG: latest
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=${{ env.TAG }}
+            type=sha,prefix=sha-,format=short
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & Push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          platforms: linux/amd64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  deploy:
+    needs: build_and_push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH (API)
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DO_HOST }}
+          username: ${{ secrets.DO_USER }}
+          key: ${{ secrets.DO_KEY }}
+          script: |
+            set -euo pipefail
+
+            # Login no registry
+            echo "Logging in to GHCR..."
+            docker login ${{ env.REGISTRY }} -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
+
+            cd ~/apps/secretaria-concafras
+
+            echo "Pulling latest image..."
+            docker compose pull api
+
+            echo "Starting/Updating API..."
+            docker compose up -d api
+
+            echo "Checking container status..."
+            docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}' | sed -n '1,5p'
+
+            # Healthcheck rápido (ajuste a URL se necessário)
+            echo "Healthcheck (best-effort)..."
+            timeout 10s curl -fsS -H "Host: api.inscribo.com.br" https://127.0.0.1 --insecure >/dev/null || true
+
+            echo "Tail last logs (best-effort)..."
+            docker logs sc_api --tail=120 || true
+
+            # Limpeza resiliente (evita erro 'a prune operation is already running')
+            echo "Pruning old images/builder cache (best-effort)..."
+            if ! pgrep -fa "docker.*prune" >/dev/null; then
+              timeout 60s docker image prune -af --filter "until=168h" || true
+              timeout 60s docker builder prune -af || true
+            else
+              echo "Another prune is running; skipping cleanup."
+            fi

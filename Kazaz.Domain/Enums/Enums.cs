@@ -1,0 +1,1 @@
+﻿public enum AlvoDocumento { Pessoa = 1, Imovel = 2 }

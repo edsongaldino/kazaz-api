@@ -1,0 +1,45 @@
+# Build results
+bin/
+obj/
+out/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.cache
+*.dbmdl
+*.bak
+*.log
+
+# Resharper
+_ReSharper*/
+*.DotSettings.user
+
+# Rider
+.idea/
+
+# VS Code
+.vscode/
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+project.lock.json
+project.fragment.lock.json
+
+# EF Core
+Migrations/
+
+# Arquivos temporários
+*.tmp
+*.temp
+*.swp
+
+# Logs
+*.log
+
+# Sistema operacional
+.DS_Store
+Thumbs.db

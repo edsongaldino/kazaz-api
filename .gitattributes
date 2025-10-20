@@ -1,0 +1,23 @@
+# Normaliza quebras de linha para LF no repositório
+* text=auto eol=lf
+
+# Arquivos C# e outros de código sempre tratados como texto
+*.cs text diff=csharp
+*.csproj text
+*.sln text
+*.json text
+*.xml text
+*.yml text
+*.yaml text
+*.md text
+
+# Arquivos binários (não tentar converter)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.dll binary
+*.exe binary
+*.pdb binary
