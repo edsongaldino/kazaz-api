@@ -12,7 +12,7 @@ concurrency:
 env:
   REGISTRY: ghcr.io
   OWNER: edsongaldino
-  IMAGE_NAME: secretaria-concafras-api
+  IMAGE_NAME: kazaz-api
   TAG: latest
 
 jobs:
@@ -73,7 +73,7 @@ jobs:
             echo "Logging in to GHCR..."
             docker login ${{ env.REGISTRY }} -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
 
-            cd ~/apps/secretaria-concafras
+            cd ~/apps/kazaz
 
             echo "Pulling latest image..."
             docker compose pull api
@@ -86,7 +86,7 @@ jobs:
 
             # Healthcheck rápido (ajuste a URL se necessário)
             echo "Healthcheck (best-effort)..."
-            timeout 10s curl -fsS -H "Host: api.inscribo.com.br" https://127.0.0.1 --insecure >/dev/null || true
+            timeout 10s curl -fsS -H "Host: api.kazaz.imb.br" https://127.0.0.1 --insecure >/dev/null || true
 
             echo "Tail last logs (best-effort)..."
             docker logs sc_api --tail=120 || true
