@@ -85,7 +85,7 @@ public class PessoaJuridicaService(ApplicationDbContext ctx) : IPessoaJuridicaSe
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(p => new PessoaListDto(
-                p.Id, "JURIDICA", p.Nome, p.Cnpj, null, p.RazaoSocial, p.EnderecoId))
+                p.Id, "JURIDICA", p.Nome, p.Cnpj, null, p.RazaoSocial, p.EnderecoId, p.OrigemId))
             .ToListAsync(ct);
 
         return (items, total);
@@ -96,7 +96,7 @@ public class PessoaJuridicaService(ApplicationDbContext ctx) : IPessoaJuridicaSe
         return await ctx.Set<DadosPessoaJuridica>().AsNoTracking()
             .Where(p => p.Id == id)
             .Select(p => new PessoaListDto(
-                p.Id, "JURIDICA", p.Nome, p.Cnpj, null, p.RazaoSocial, p.EnderecoId))
+                p.Id, "JURIDICA", p.Nome, p.Cnpj, null, p.RazaoSocial, p.EnderecoId, p.OrigemId))
             .FirstOrDefaultAsync(ct);
     }
 

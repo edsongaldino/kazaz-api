@@ -70,7 +70,6 @@ namespace Kazaz.Application.Services
             return true;
         }
 
-        // Helper de mapeamento (Entity -> Response DTO)
         private static EnderecoResponseDto ToResponseDto(Endereco e) => new()
         {
             Id = e.Id,

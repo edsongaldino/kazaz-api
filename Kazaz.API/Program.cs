@@ -26,7 +26,7 @@ builder.Services.AddControllers();
 
 builder.Services.AddDbContext<ApplicationDbContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
-       .UseSnakeCaseNamingConvention()   // ← tem que estar aqui no runtime
+       .UseSnakeCaseNamingConvention()
        .EnableDetailedErrors()
        .EnableSensitiveDataLogging());
 

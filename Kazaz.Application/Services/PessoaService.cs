@@ -34,7 +34,8 @@ public class PessoaService(ApplicationDbContext ctx) : IPessoaService
             Documento = p.Cpf,
             Nascimento = (DateOnly?)p.DataNascimento,
             RazaoSocial = (string?)null,
-            EnderecoId = p.EnderecoId
+            EnderecoId = p.EnderecoId,
+            OrigemId = p.OrigemId
         });
 
         // PJ
@@ -55,7 +56,8 @@ public class PessoaService(ApplicationDbContext ctx) : IPessoaService
             Documento = p.Cnpj,
             Nascimento = (DateOnly?)null,
             RazaoSocial = (string?)p.RazaoSocial,
-            EnderecoId = p.EnderecoId
+            EnderecoId = p.EnderecoId,
+            OrigemId = p.OrigemId
         });
 
         // Union/concat no servidor
@@ -69,31 +71,47 @@ public class PessoaService(ApplicationDbContext ctx) : IPessoaService
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(x => new PessoaListDto(
-                x.Id, x.Tipo, x.Nome, x.Documento, x.Nascimento, x.RazaoSocial, x.EnderecoId))
+                x.Id, x.Tipo, x.Nome, x.Documento, x.Nascimento, x.RazaoSocial, x.EnderecoId, x.OrigemId))
             .ToListAsync(ct);
 
         return (items, total);
     }
 
-    public async Task<PessoaListDto?> ObterAsync(Guid id, CancellationToken ct)
+    public async Task<PessoaDetailsDto?> ObterAsync(Guid id, CancellationToken ct)
     {
-        // tenta PF
-        var pf = await ctx.Set<DadosPessoaFisica>().AsNoTracking()
-            .Where(p => p.Id == id)
-            .Select(p => new PessoaListDto(
-                p.Id, "FISICA", p.Nome, p.Cpf, p.DataNascimento, null, p.EnderecoId))
-            .FirstOrDefaultAsync(ct);
+        var dto = await ctx.Set<Pessoa>()
+        .AsNoTracking()
+        .Where(p => p.Id == id)
+        // garante que tenha ao menos um vínculo; se preferir, remova este Where
+        .Where(p => p.PessoaFisica != null || p.PessoaJuridica != null)
+        .Select(p => new PessoaDetailsDto(
+            p.Id,
 
-        if (pf is not null) return pf;
+            p.PessoaFisica != null ? "PF" : "PJ",
 
-        // tenta PJ
-        var pj = await ctx.Set<DadosPessoaJuridica>().AsNoTracking()
-            .Where(p => p.Id == id)
-            .Select(p => new PessoaListDto(
-                p.Id, "JURIDICA", p.Nome, p.Cnpj, null, p.RazaoSocial, p.EnderecoId))
-            .FirstOrDefaultAsync(ct);
+            p.Nome,
 
-        return pj;
+            p.PessoaFisica != null ? p.PessoaFisica.Cpf : p.PessoaJuridica!.Cnpj,
+
+            p.PessoaFisica != null ? p.PessoaFisica.DataNascimento : (DateOnly?)null,
+
+            p.PessoaJuridica != null ? p.PessoaJuridica.RazaoSocial : null,
+
+            p.Endereco == null ? null : new EnderecoResponseDto
+            {
+                Id = p.Endereco.Id,          // remova se seu DTO não tem Id
+                Cep = p.Endereco.Cep,
+                Logradouro = p.Endereco.Logradouro,
+                Numero = p.Endereco.Numero,
+                Complemento = p.Endereco.Complemento,
+                Bairro = p.Endereco.Bairro,
+                CidadeId = p.Endereco.CidadeId
+            },
+            p.OrigemId
+        ))
+        .FirstOrDefaultAsync(ct);
+
+        return dto;
     }
 
     public async Task RemoverAsync(Guid id, CancellationToken ct)

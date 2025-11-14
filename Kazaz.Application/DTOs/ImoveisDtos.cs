@@ -8,7 +8,7 @@ public record ImovelListDto(
 
 public record ImovelCreateDto(
     string Codigo,
-    Guid EnderecoId
+    EnderecoCreateDto Endereco
 );
 
 public record ImovelUpdateDto(

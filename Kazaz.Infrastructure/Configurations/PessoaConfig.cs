@@ -16,6 +16,22 @@ public sealed class PessoaConfig : IEntityTypeConfiguration<Pessoa>
          .HasForeignKey(x => x.EnderecoId)
          .OnDelete(DeleteBehavior.SetNull);
 
-        // ❌ NADA de HasDiscriminator aqui (isso força TPH)
+        b.HasOne(p => p.PessoaFisica)
+         .WithOne(pf => pf.Pessoa)
+         .HasForeignKey<DadosPessoaFisica>(pf => pf.Id)   // shared PK
+         .OnDelete(DeleteBehavior.Cascade);
+
+        b.HasOne(p => p.PessoaJuridica)
+         .WithOne(pj => pj.Pessoa)
+         .HasForeignKey<DadosPessoaJuridica>(pj => pj.Id) // shared PK
+         .OnDelete(DeleteBehavior.Cascade);
+
+        b.Property(x => x.OrigemId)
+        .HasColumnName("origem_id");
+
+            b.HasOne(x => x.Origem)
+                .WithMany(o => o.Clientes)
+                .HasForeignKey(x => x.OrigemId)
+                .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -14,7 +14,7 @@ namespace Kazaz.Application.Interfaces
             string? termo,
             CancellationToken ct = default);
 
-        Task<PessoaListDto?> ObterAsync(Guid id, CancellationToken ct = default);
+        Task<PessoaDetailsDto?> ObterAsync(Guid id, CancellationToken ct = default);
 
         Task RemoverAsync(Guid id, CancellationToken ct = default);
     }

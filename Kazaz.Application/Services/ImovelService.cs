@@ -1,18 +1,22 @@
 ﻿using Kazaz.Application.DTOs;
 using Kazaz.Application.Interfaces;
+using Kazaz.Application.Interfaces.Services;
 using Kazaz.Domain.Entities;
 using Kazaz.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Kazaz.Application.Services;
 
-public class ImovelService(ApplicationDbContext ctx) : IImovelService
+public class ImovelService : IImovelService
 {
+    private readonly ApplicationDbContext ctx;
+    private readonly IEnderecoService _enderecoService;
+
+    public ImovelService(ApplicationDbContext ctx, IEnderecoService enderecoService)
+    {
+        this.ctx = ctx;
+        _enderecoService = enderecoService;
+    }
     public async Task<(IReadOnlyList<ImovelListDto> Items, int Total)> ListarAsync(int page, int pageSize, string? termo, CancellationToken ct)
     {
         page = page < 1 ? 1 : page; pageSize = pageSize < 1 ? 10 : pageSize;
@@ -40,9 +44,38 @@ public class ImovelService(ApplicationDbContext ctx) : IImovelService
 
     public async Task<Guid> CriarAsync(ImovelCreateDto dto, CancellationToken ct)
     {
-        var ent = new Imovel { Id = Guid.NewGuid(), Codigo = dto.Codigo.Trim(), EnderecoId = dto.EnderecoId };
+        if (dto is null) throw new ArgumentNullException(nameof(dto));
+        if (string.IsNullOrWhiteSpace(dto.Codigo))
+            throw new ArgumentException("Código é obrigatório.", nameof(dto));
+
+        await using var tx = await ctx.Database.BeginTransactionAsync(ct);
+
+        // 1) Resolver o EnderecoId
+        Guid enderecoId;
+
+        if (dto.Endereco is not null)
+        {
+            // Reaproveita seu serviço de Endereço
+            var endResp = await _enderecoService.CriarAsync(dto.Endereco!);
+            enderecoId = endResp.Id;
+        }
+        else
+        {
+            throw new ArgumentException("Informe EnderecoId ou o objeto Endereco.");
+        }
+
+        // 2) Criar o imóvel
+        var ent = new Imovel
+        {
+            Id = Guid.NewGuid(),
+            Codigo = dto.Codigo.Trim(),
+            EnderecoId = enderecoId
+        };
+
         ctx.Add(ent);
         await ctx.SaveChangesAsync(ct);
+
+        await tx.CommitAsync(ct);
         return ent.Id;
     }
 

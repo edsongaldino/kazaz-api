@@ -27,6 +27,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<PessoaDocumento> PessoasDocumentos => Set<PessoaDocumento>();
     public DbSet<ImovelDocumento> ImoveisDocumentos => Set<ImovelDocumento>();
 
+    public DbSet<Origem> Origens => Set<Origem>();
+
 
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 

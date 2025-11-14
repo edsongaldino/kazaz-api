@@ -10,4 +10,5 @@ public sealed class DadosPessoaFisica : Pessoa
 {
     public string Cpf { get; set; } = default!;
     public DateOnly? DataNascimento { get; set; }
+    public Pessoa Pessoa { get; set; } = null!;
 }

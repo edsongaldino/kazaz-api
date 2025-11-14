@@ -1,4 +1,4 @@
-name: CI/CD - Secretaria Concafras API
+name: CI/CD - Kazaz API
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: deploy-inscribo-api
+  group: deploy-kazaz-api
   cancel-in-progress: true
 
 env:

@@ -13,6 +13,11 @@ public class Pessoa
     public Guid? EnderecoId { get; set; }
     public Endereco? Endereco { get; set; }
 
+    public DadosPessoaFisica? PessoaFisica { get; set; }
+    public DadosPessoaJuridica? PessoaJuridica { get; set; }
+    public Guid? OrigemId { get; set; }
+    public Origem? Origem { get; set; }
+
 
     public List<VinculoPessoaImovel> Vinculos { get; set; } = new();
 }

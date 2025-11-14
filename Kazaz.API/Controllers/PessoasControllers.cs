@@ -12,12 +12,15 @@ public class PessoasController : ControllerBase
     private readonly IPessoaFisicaService _pessoaFisicaService;
     private readonly IPessoaJuridicaService _pessoaJuridicaService;
     private readonly IEnderecoService _enderecoService;
+    private readonly IPessoaService _pessoaService;
 
     public PessoasController(
         IPessoaFisicaService pessoaFisicaService,
+        IPessoaService pessoaService,
         IPessoaJuridicaService pessoaJuridicaService,
         IEnderecoService enderecoService)
     {
+        _pessoaService = pessoaService;
         _pessoaFisicaService = pessoaFisicaService;
         _pessoaJuridicaService = pessoaJuridicaService;
         _enderecoService = enderecoService;
@@ -30,14 +33,14 @@ public class PessoasController : ControllerBase
         [FromQuery] string? termo = null,
         CancellationToken ct = default)
     {
-        var (items, total) = await _pessoaFisicaService.ListarAsync(page, pageSize, termo, ct);
+        var (items, total) = await _pessoaService.ListarAsync(page, pageSize, termo, ct);
         return Ok(new { page, pageSize, total, items });
     }
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> Obter(Guid id, CancellationToken ct)
     {
-        var dto = await _pessoaFisicaService.ObterAsync(id, ct);
+        var dto = await _pessoaService.ObterAsync(id, ct);
         return dto is null ? NotFound() : Ok(dto);
     }
 
@@ -81,8 +84,9 @@ public class PessoasController : ControllerBase
             var pfReq = new PessoaFisicaCreateDto(
                 Nome: (dto.Nome ?? string.Empty).Trim(),
                 Cpf: Limpar(dto.Documento).PadLeft(11, '0'),
-                Nascimento: dto.Nascimento,
-                EnderecoId: endereco.Id
+                DataNascimento: dto.DataNascimento,
+                EnderecoId: endereco.Id,
+                OrigemId: dto.OrigemId
             );
 
             pessoaId = await _pessoaFisicaService.CriarAsync(pfReq, ct);
@@ -95,7 +99,8 @@ public class PessoasController : ControllerBase
                 Nome: string.IsNullOrWhiteSpace(dto.Nome) ? string.Empty : dto.Nome!.Trim(),
                 RazaoSocial: (dto.RazaoSocial ?? string.Empty).Trim(),
                 Cnpj: Limpar(dto.Documento).PadLeft(14, '0'),
-                EnderecoId: endereco.Id
+                EnderecoId: endereco.Id,
+                OrigemId: dto.OrigemId
             );
 
             pessoaId = await _pessoaJuridicaService.CriarAsync(pjReq, ct);
@@ -103,6 +108,83 @@ public class PessoasController : ControllerBase
 
         return Created($"/api/pessoas/{pessoaId}", new { id = pessoaId });
     }
+
+    [HttpPut("{id:guid}")]
+    [Consumes("application/json")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> EditarAsync([FromRoute] Guid id, [FromBody] PessoaUpdateDto dto, CancellationToken ct)
+    {
+        if (id == Guid.Empty) return BadRequest("Id inválido.");
+        if (dto is null) return BadRequest("Payload inválido.");
+
+
+        // Endereço: upsert opcional
+        Guid? enderecoId = null;
+        if (dto.Endereco is not null)
+        {
+            if (dto.Endereco is not null && dto.Endereco.Id != Guid.Empty)
+            {
+                var eUpd = new EnderecoUpdateDto
+                {
+                    Id = dto.Endereco.Id,
+                    Cep = Limpar(dto.Endereco.Cep),
+                    Logradouro = dto.Endereco.Logradouro?.Trim(),
+                    Numero = dto.Endereco.Numero?.Trim(),
+                    Complemento = string.IsNullOrWhiteSpace(dto.Endereco.Complemento) ? null : dto.Endereco.Complemento!.Trim(),
+                    Bairro = dto.Endereco.Bairro?.Trim(),
+                    CidadeId = dto.Endereco.CidadeId
+                };
+                await _enderecoService.AtualizarAsync(eUpd);
+                enderecoId = eUpd.Id;
+            }
+            else
+            {
+                if (dto.Endereco.CidadeId == Guid.Empty)
+                    return BadRequest("Endereco.CidadeId é obrigatório.");
+
+                var eReq = new EnderecoCreateDto
+                {
+                    Cep = Limpar(dto.Endereco.Cep ?? ""),
+                    Logradouro = dto.Endereco.Logradouro?.Trim() ?? string.Empty,
+                    Numero = dto.Endereco.Numero?.Trim() ?? string.Empty,
+                    Complemento = string.IsNullOrWhiteSpace(dto.Endereco.Complemento) ? null : dto.Endereco.Complemento!.Trim(),
+                    Bairro = dto.Endereco.Bairro?.Trim() ?? string.Empty,
+                    CidadeId = dto.Endereco.CidadeId
+                };
+
+                var novo = await _enderecoService.CriarAsync(eReq);
+                enderecoId = novo.Id;
+            }
+        }
+
+        if (dto.Tipo == "PF")
+        {
+            var pf = new PessoaFisicaUpdateDto(
+                Nome: dto.Nome?.Trim(),
+                Cpf: string.IsNullOrWhiteSpace(dto.Documento) ? null : Limpar(dto.Documento).PadLeft(11, '0'),
+                DataNascimento: dto.DataNascimento,
+                EnderecoId: enderecoId,
+                OrigemId: dto.OrigemId
+            );
+            await _pessoaFisicaService.AtualizarAsync(id, pf, ct);
+        }
+        else // "PJ"
+        {
+            var pj = new PessoaJuridicaUpdateDto(
+                Nome: string.IsNullOrWhiteSpace(dto.Nome) ? null : dto.Nome!.Trim(),
+                RazaoSocial: dto.RazaoSocial?.Trim(),
+                Cnpj: string.IsNullOrWhiteSpace(dto.Documento) ? null : Limpar(dto.Documento).PadLeft(14, '0'),
+                EnderecoId: enderecoId,
+                OrigemId: dto.OrigemId
+            );
+            await _pessoaJuridicaService.AtualizarAsync(id, pj, ct);
+        }
+
+        return NoContent();
+    }
+
 
     private static string Limpar(string? s)
         => new string((s ?? string.Empty).Where(char.IsDigit).ToArray());

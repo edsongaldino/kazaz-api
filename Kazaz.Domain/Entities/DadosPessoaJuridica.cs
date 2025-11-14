@@ -13,4 +13,5 @@ public sealed class DadosPessoaJuridica : Pessoa
     public DateOnly? DataAbertura { get; set; }
 
     public List<Socio> Socios { get; set; } = new();
+    public Pessoa Pessoa { get; set; } = null!;
 }

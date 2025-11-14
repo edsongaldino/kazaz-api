@@ -22,7 +22,7 @@ public class PessoaFisicaService(ApplicationDbContext ctx) : IPessoaFisicaServic
             Id = Guid.NewGuid(),
             Nome = dto.Nome.Trim(),
             Cpf = cpf,
-            DataNascimento = dto.Nascimento,
+            DataNascimento = dto.DataNascimento,
             EnderecoId = dto.EnderecoId
         };
 
@@ -46,7 +46,7 @@ public class PessoaFisicaService(ApplicationDbContext ctx) : IPessoaFisicaServic
 
         ent.Nome = dto.Nome.Trim();
         ent.Cpf = cpf;
-        ent.DataNascimento = dto.Nascimento;
+        ent.DataNascimento = dto.DataNascimento;
         ent.EnderecoId = dto.EnderecoId;
 
         await ctx.SaveChangesAsync(ct);
@@ -88,7 +88,7 @@ public class PessoaFisicaService(ApplicationDbContext ctx) : IPessoaFisicaServic
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(p => new PessoaListDto(
-                p.Id, "FISICA", p.Nome, p.Cpf, p.DataNascimento, null, p.EnderecoId))
+                p.Id, "FISICA", p.Nome, p.Cpf, p.DataNascimento, null, p.EnderecoId, p.OrigemId))
             .ToListAsync(ct);
 
         return (items, total);
@@ -99,7 +99,7 @@ public class PessoaFisicaService(ApplicationDbContext ctx) : IPessoaFisicaServic
         return await ctx.Set<DadosPessoaFisica>().AsNoTracking()
             .Where(p => p.Id == id)
             .Select(p => new PessoaListDto(
-                p.Id, "FISICA", p.Nome, p.Cpf, p.DataNascimento, null, p.EnderecoId))
+                p.Id, "FISICA", p.Nome, p.Cpf, p.DataNascimento, null, p.EnderecoId, p.OrigemId))
             .FirstOrDefaultAsync(ct);
     }
 
