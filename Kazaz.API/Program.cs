@@ -52,6 +52,20 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+var allowedOrigins = "_allowedOrigins";
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: allowedOrigins,
+        policy =>
+        {
+            policy.WithOrigins("https://kazaz.imb.br") // seu front em produção
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+            // Se tiver cookies/autenticação, usar também .AllowCredentials()
+        });
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
