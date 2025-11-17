@@ -9,6 +9,8 @@ namespace Kazaz.Domain.Entities;
 public sealed class DadosPessoaFisica : Pessoa
 {
     public string Cpf { get; set; } = default!;
+    public string Rg { get; set; } = default!;
+    public string OrgaoExpedidor { get; set; } = default!;
     public DateOnly? DataNascimento { get; set; }
     public Pessoa Pessoa { get; set; } = null!;
 }

@@ -17,6 +17,14 @@ public sealed class PessoaFisicaConfig : IEntityTypeConfiguration<DadosPessoaFis
          .IsUnique()
          .HasDatabaseName("ix_pessoas_cpf_1");
 
+        b.Property(p => p.Rg)
+           .HasColumnName("rg")
+           .HasMaxLength(20);       // exemplo
+
+        b.Property(p => p.OrgaoExpedidor)
+               .HasColumnName("orgao_expedidor")
+               .HasMaxLength(50);
+
         b.Property(x => x.DataNascimento)
          .HasColumnName("data_nascimento")
          .HasColumnType("date");

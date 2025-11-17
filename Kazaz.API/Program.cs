@@ -87,7 +87,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    //db.Database.Migrate(); // cria/atualiza o schema
+    db.Database.Migrate(); // cria/atualiza o schema
 }
 
 app.UseSwagger();
