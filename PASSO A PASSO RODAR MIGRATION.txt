@@ -1,0 +1,47 @@
+ssh -N -L 5433:127.0.0.1:5433 root@165.227.113.235
+
+curl -s -H "Authorization: Bearer APP_USR-520654206472193-090918-7a81b3b2af303ec9f85a0b3bdd7dc8a5-284346389" \
+  "https://api.mercadopago.com/v1/payments/search?external_reference=451d3046-682d-460c-8fe7-3a0511ec0d27451d3046-682d-460c-8fe7-3a0511ec0d27" \
+  | grep -o '"id":[0-9]\+' | head -n1 | cut -d: -f2
+
+
+dotnet ef migrations add Init \
+  --project Kazaz.Infrastructure \
+  --startup-project Kazaz.API \
+  --context ApplicationDbContext \
+  --output-dir Migrations
+
+
+Passo 1 – Alterar a entidade (C#)
+
+public class PessoaFisica : Pessoa
+{
+    // ... propriedades que já existem
+
+    public string? Rg { get; set; }
+    public string? OrgaoExpedidor { get; set; }
+}
+
+
+Passo 2 – Ajustar o mapeamento (Fluent API)
+
+public void Configure(EntityTypeBuilder<PessoaFisica> builder)
+{
+    builder.ToTable("pessoa_fisica");
+
+    // ...
+
+    builder.Property(p => p.Rg)
+           .HasColumnName("rg")
+           .HasMaxLength(20);       // exemplo
+
+    builder.Property(p => p.OrgaoExpedidor)
+           .HasColumnName("orgao_expedidor")
+           .HasMaxLength(50);       // exemplo
+}
+
+Passo 3 – Gerar a migration - Na raiz do projeto
+dotnet ef migrations add AddRgAndOrgaoExpedidorToPessoaFisica --project Kazaz.Infrastructure --startup-project Kazaz.API
+
+Passo 4 – Aplicar no banco LOCAL
+dotnet ef database update --project Kazaz.Infrastructure --startup-project Kazaz.API
