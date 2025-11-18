@@ -59,7 +59,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: allowedOrigins,
         policy =>
         {
-            policy.WithOrigins("https://kazaz.imb.br") // seu front em produção
+            policy.WithOrigins("https://kazaz.imb.br", "https://www.kazaz.imb.br") // seu front em produção
                   .AllowAnyHeader()
                   .AllowAnyMethod();
             // Se tiver cookies/autenticação, usar também .AllowCredentials()
@@ -113,6 +113,7 @@ app.UseSwaggerUI(c =>
 
 
 app.UseHttpsRedirection();
+app.UseCors(allowedOrigins);
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
