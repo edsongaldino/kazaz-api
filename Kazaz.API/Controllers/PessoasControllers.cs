@@ -84,7 +84,7 @@ public class PessoasController : ControllerBase
             var pfReq = new PessoaFisicaCreateDto(
                 Nome: (dto.Nome ?? string.Empty).Trim(),
                 Cpf: Limpar(dto.Documento).PadLeft(11, '0'),
-                DataNascimento: dto.DataNascimento,
+                DataNascimento: dto.DadosPessoaFisica.DataNascimento,
                 EnderecoId: endereco.Id,
                 OrigemId: dto.OrigemId
             );

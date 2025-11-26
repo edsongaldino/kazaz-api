@@ -59,7 +59,11 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: allowedOrigins,
         policy =>
         {
-            policy.WithOrigins("https://kazaz.imb.br", "https://www.kazaz.imb.br") // seu front em produção
+            policy.WithOrigins(
+                    "https://kazaz.imb.br", 
+                    "https://www.kazaz.imb.br",
+                    "https://localhost:4200",
+                    "http://localhost:4200")
                   .AllowAnyHeader()
                   .AllowAnyMethod();
             // Se tiver cookies/autenticação, usar também .AllowCredentials()

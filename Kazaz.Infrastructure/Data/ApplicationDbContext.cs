@@ -29,6 +29,8 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<Origem> Origens => Set<Origem>();
 
+    public DbSet<Contato> Contatos => Set<Contato>();
+
 
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 

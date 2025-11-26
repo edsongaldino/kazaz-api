@@ -48,13 +48,15 @@ public record PessoaJuridicaUpdateDto(
 
 
 public record PessoaCreateDto(
-    string Tipo, 
-    string Documento, 
+    string Tipo,
+    string Documento,
     string? Nome,
     string? RazaoSocial,
-    DateOnly? DataNascimento,
     EnderecoCreateDto Endereco,
-    Guid? OrigemId
+    Guid? OrigemId,
+    PessoaFisicaCreateDto? DadosPessoaFisica,
+    PessoaJuridicaCreateDto? DadosPessoaJuridica,
+    List<ContatoCreateDto>? Contatos
 );
 
 public record PessoaDetailsDto(
