@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 
 namespace Kazaz.Application.DTOs;
 
-public record ConjugeDto(
-    string? Nome,
-    string? Cpf,
-    DateOnly? DataNascimento,
-    string? Telefone,
-    string? Email
+public record ConjugeCreateDto(
+	string Nome,
+	string Cpf,
+	string? Rg,
+	string? OrgaoExpedidor,
+	DateOnly? DataNascimento,
+	string? Telefone,
+	string? Email
 );

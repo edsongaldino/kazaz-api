@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 
 namespace Kazaz.Application.DTOs;
 
-public record DadosComplementaresDto(
+public record DadosComplementaresCreateDto(
     string? Profissao,
     string? Escolaridade,
     decimal? RendaMensal,
     string? Observacoes
 );
+
+

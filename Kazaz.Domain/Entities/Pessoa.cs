@@ -18,6 +18,9 @@ public class Pessoa
     public Guid? OrigemId { get; set; }
     public Origem? Origem { get; set; }
 
-    public ICollection<Contato> Contatos { get; set; } = new List<Contato>();
+	public Conjuge? Conjuge { get; set; }
+	public DadosComplementares? DadosComplementares { get; set; }
+
+	public ICollection<Contato> Contatos { get; set; } = new List<Contato>();
     public List<VinculoPessoaImovel> Vinculos { get; set; } = new();
 }

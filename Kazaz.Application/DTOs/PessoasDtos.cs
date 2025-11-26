@@ -56,7 +56,9 @@ public record PessoaCreateDto(
     Guid? OrigemId,
     PessoaFisicaCreateDto? DadosPessoaFisica,
     PessoaJuridicaCreateDto? DadosPessoaJuridica,
-    List<ContatoCreateDto>? Contatos
+    List<ContatoCreateDto>? Contatos,
+	DadosComplementaresCreateDto? DadosComplementares,
+    ConjugeCreateDto? Conjuge
 );
 
 public record PessoaDetailsDto(

@@ -1,6 +1,7 @@
 ﻿using Kazaz.Application.DTOs;
 using Kazaz.Application.Interfaces;
 using Kazaz.Application.Interfaces.Services;
+using Kazaz.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Kazaz.API.Controllers;
@@ -13,18 +14,29 @@ public class PessoasController : ControllerBase
     private readonly IPessoaJuridicaService _pessoaJuridicaService;
     private readonly IEnderecoService _enderecoService;
     private readonly IPessoaService _pessoaService;
+	private readonly IContatoService _contatoService;
+	private readonly IDadosComplementaresService _dadosComplementaresService;
+	private readonly IConjugeService _conjugeService;
 
-    public PessoasController(
+	public PessoasController(
         IPessoaFisicaService pessoaFisicaService,
         IPessoaService pessoaService,
         IPessoaJuridicaService pessoaJuridicaService,
-        IEnderecoService enderecoService)
+        IEnderecoService enderecoService,
+		IContatoService contatoService,
+		IConjugeService conjugeService,
+		IDadosComplementaresService dadosComplementaresService
+		)
     {
         _pessoaService = pessoaService;
         _pessoaFisicaService = pessoaFisicaService;
         _pessoaJuridicaService = pessoaJuridicaService;
         _enderecoService = enderecoService;
-    }
+		_contatoService = contatoService;
+		_dadosComplementaresService = dadosComplementaresService;
+        _conjugeService = conjugeService;
+
+	}
 
     [HttpGet]
     public async Task<IActionResult> Listar(
@@ -106,7 +118,30 @@ public class PessoasController : ControllerBase
             pessoaId = await _pessoaJuridicaService.CriarAsync(pjReq, ct);
         }
 
-        return Created($"/api/pessoas/{pessoaId}", new { id = pessoaId });
+		if (dto.Contatos is not null && dto.Contatos.Any())
+		{
+			await _contatoService.CriarVariosAsync(pessoaId, dto.Contatos, ct);
+		}
+
+		if (dto.DadosComplementares is not null)
+		{
+			await _dadosComplementaresService.CriarOuAtualizarAsync(
+				pessoaId,
+				dto.DadosComplementares,
+				ct
+			);
+		}
+
+		if (dto.Conjuge is not null)
+		{
+			await _conjugeService.CriarOuAtualizarAsync(
+				pessoaId,
+				dto.Conjuge,
+				ct
+			);
+		}
+
+		return Created($"/api/pessoas/{pessoaId}", new { id = pessoaId });
     }
 
     [HttpPut("{id:guid}")]
