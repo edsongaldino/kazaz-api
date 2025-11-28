@@ -19,7 +19,7 @@ public class PessoaJuridicaService(ApplicationDbContext ctx) : IPessoaJuridicaSe
         var ent = new DadosPessoaJuridica
         {
             Id = Guid.NewGuid(),
-            Nome = dto.Nome.Trim(),
+            Nome = dto.NomeFantasia.Trim(),
             RazaoSocial = dto.RazaoSocial.Trim(),
             Cnpj = cnpj,
             EnderecoId = dto.EnderecoId

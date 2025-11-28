@@ -14,8 +14,10 @@ public record PessoaListDto(
 
 // PF
 public record PessoaFisicaCreateDto(
-    string Nome,
     string Cpf,
+    string Rg,
+    string Nome,
+    string OrgaoExpedidor,
     DateOnly? DataNascimento,
     Guid? EnderecoId,
     Guid? OrigemId
@@ -31,7 +33,7 @@ public record PessoaFisicaUpdateDto(
 
 // PJ
 public record PessoaJuridicaCreateDto(
-    string Nome,
+    string NomeFantasia,
     string RazaoSocial,
     string Cnpj,
     Guid? EnderecoId,
@@ -50,8 +52,6 @@ public record PessoaJuridicaUpdateDto(
 public record PessoaCreateDto(
     string Tipo,
     string Documento,
-    string? Nome,
-    string? RazaoSocial,
     EnderecoCreateDto Endereco,
     Guid? OrigemId,
     PessoaFisicaCreateDto? DadosPessoaFisica,

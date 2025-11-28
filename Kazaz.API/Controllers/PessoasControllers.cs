@@ -94,7 +94,9 @@ public class PessoasController : ControllerBase
         if (tipo == "FISICA")
         {
             var pfReq = new PessoaFisicaCreateDto(
-                Nome: (dto.Nome ?? string.Empty).Trim(),
+                Nome: (dto.DadosPessoaFisica.Nome ?? string.Empty).Trim(),
+                Rg: (dto.DadosPessoaFisica.Rg ?? string.Empty).Trim(),
+                OrgaoExpedidor: (dto.DadosPessoaFisica.OrgaoExpedidor ?? string.Empty).Trim(),
                 Cpf: Limpar(dto.Documento).PadLeft(11, '0'),
                 DataNascimento: dto.DadosPessoaFisica.DataNascimento,
                 EnderecoId: endereco.Id,
@@ -108,8 +110,8 @@ public class PessoasController : ControllerBase
             // Se Nome (fantasia) for realmente opcional e seu DTO não aceita null,
             // mande string.Empty ou mude a assinatura para string? Nome
             var pjReq = new PessoaJuridicaCreateDto(
-                Nome: string.IsNullOrWhiteSpace(dto.Nome) ? string.Empty : dto.Nome!.Trim(),
-                RazaoSocial: (dto.RazaoSocial ?? string.Empty).Trim(),
+                NomeFantasia: (dto.DadosPessoaJuridica.NomeFantasia ?? string.Empty).Trim(),
+                RazaoSocial: (dto.DadosPessoaJuridica.RazaoSocial ?? string.Empty).Trim(),
                 Cnpj: Limpar(dto.Documento).PadLeft(14, '0'),
                 EnderecoId: endereco.Id,
                 OrigemId: dto.OrigemId
