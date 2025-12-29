@@ -10,3 +10,20 @@ public enum EstadoCivil
     UniaoEstavel = 5,
     Separado = 6
 }
+
+public enum FinalidadeImovel
+{
+	Venda = 1,
+	Aluguel = 2,
+	Temporada = 3,
+	UsoProprio = 4
+}
+
+public enum StatusImovel
+{
+	Ativo = 1,
+	Inativo = 2,
+	EmNegociacao = 3,
+	Vendido = 4,
+	Alugado = 5
+}

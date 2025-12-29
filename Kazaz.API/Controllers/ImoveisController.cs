@@ -27,14 +27,14 @@ public class ImoveisController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Criar([FromBody] ImovelCreateDto dto, CancellationToken ct)
+    public async Task<IActionResult> Criar([FromBody] ImovelUpsertDto dto, CancellationToken ct)
     {
         var id = await _service.CriarAsync(dto, ct);
         return CreatedAtAction(nameof(Obter), new { id }, new { id });
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<IActionResult> Atualizar(Guid id, [FromBody] ImovelUpdateDto dto, CancellationToken ct)
+    public async Task<IActionResult> Atualizar(Guid id, [FromBody] ImovelUpsertDto dto, CancellationToken ct)
     {
         await _service.AtualizarAsync(id, dto, ct);
         return NoContent();

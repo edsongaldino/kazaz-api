@@ -6,12 +6,30 @@ public record ImovelListDto(
     Guid EnderecoId
 );
 
-public record ImovelCreateDto(
-    string Codigo,
-    EnderecoCreateDto Endereco
+public record ImovelUpsertDto(
+	string Codigo,
+	string? Titulo,
+	FinalidadeImovel Finalidade,
+	StatusImovel Status,
+	Guid TipoImovelId,
+	EnderecoCreateDto Endereco,
+	string? Observacoes,
+	List<ImovelCaracteristicaUpsertDto> Caracteristicas,
+	List<VinculoPessoaImovelUpsertDto> Vinculos
 );
 
-public record ImovelUpdateDto(
-    string Codigo,
-    Guid EnderecoId
+public sealed record ImovelDetailsDto(
+	Guid Id,
+	string Codigo,
+	string? Titulo,
+	FinalidadeImovel Finalidade,
+	StatusImovel Status,
+	Guid TipoImovelId,
+	string TipoImovelNome,
+	Guid EnderecoId,
+	string? Observacoes,
+	List<ImovelCaracteristicaDto> Caracteristicas,
+	List<VinculoPessoaImovelDto> Vinculos,
+	List<ImovelFotoDto> Fotos,
+	List<ImovelDocumentoDto> Documentos
 );
