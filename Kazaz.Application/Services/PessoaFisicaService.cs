@@ -8,7 +8,7 @@ namespace Kazaz.Application.Services;
 
 public class PessoaFisicaService(ApplicationDbContext ctx) : IPessoaFisicaService
 {
-    public async Task<Guid> CriarAsync(PessoaFisicaCreateDto dto, CancellationToken ct)
+    public async Task<Guid> CriarAsync(DadosPessoaFisicaDto dto, CancellationToken ct)
     {
         var cpf = LimparCpf(dto.Cpf);
 
@@ -22,8 +22,7 @@ public class PessoaFisicaService(ApplicationDbContext ctx) : IPessoaFisicaServic
             Id = Guid.NewGuid(),
             Nome = dto.Nome.Trim(),
             Cpf = cpf,
-            DataNascimento = dto.DataNascimento,
-            EnderecoId = dto.EnderecoId
+            DataNascimento = dto.DataNascimento
         };
 
         ctx.Add(ent);
@@ -47,7 +46,7 @@ public class PessoaFisicaService(ApplicationDbContext ctx) : IPessoaFisicaServic
         ent.Nome = dto.Nome.Trim();
         ent.Cpf = cpf;
         ent.DataNascimento = dto.DataNascimento;
-        ent.EnderecoId = dto.EnderecoId;
+        ent.OrgaoExpedidor = dto.OrgaoExpedidor;
 
         await ctx.SaveChangesAsync(ct);
     }

@@ -9,5 +9,5 @@ namespace Kazaz.Application.Interfaces;
 
 public interface IConjugeService
 {
-	Task CriarOuAtualizarAsync(Guid pessoaId, ConjugeCreateDto dto, CancellationToken ct);
+	Task CriarOuAtualizarAsync(Guid pessoaId, ConjugeDto dto, CancellationToken ct);
 }

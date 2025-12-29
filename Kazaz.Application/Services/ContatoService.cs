@@ -19,7 +19,7 @@ public class ContatoService : IContatoService
 		_context = context;
 	}
 
-	public async Task CriarVariosAsync(Guid pessoaId, IEnumerable<ContatoCreateDto> contatos, CancellationToken ct)
+	public async Task CriarVariosAsync(Guid pessoaId, IEnumerable<ContatoDto> contatos, CancellationToken ct)
 	{
 		if (contatos is null) return;
 

@@ -8,7 +8,7 @@ namespace Kazaz.Application.Services;
 
 public class PessoaJuridicaService(ApplicationDbContext ctx) : IPessoaJuridicaService
 {
-    public async Task<Guid> CriarAsync(PessoaJuridicaCreateDto dto, CancellationToken ct)
+    public async Task<Guid> CriarAsync(DadosPessoaJuridicaDto dto, CancellationToken ct)
     {
         var cnpj = LimparCnpj(dto.Cnpj);
 
@@ -21,8 +21,7 @@ public class PessoaJuridicaService(ApplicationDbContext ctx) : IPessoaJuridicaSe
             Id = Guid.NewGuid(),
             Nome = dto.NomeFantasia.Trim(),
             RazaoSocial = dto.RazaoSocial.Trim(),
-            Cnpj = cnpj,
-            EnderecoId = dto.EnderecoId
+            Cnpj = cnpj
         };
         ctx.Add(ent);
         await ctx.SaveChangesAsync(ct);
@@ -40,10 +39,9 @@ public class PessoaJuridicaService(ApplicationDbContext ctx) : IPessoaJuridicaSe
             .AnyAsync(x => x.Id != id && x.Cnpj == cnpj, ct);
         if (existeOutro) throw new InvalidOperationException("CNPJ já cadastrado.");
 
-        ent.Nome = dto.Nome.Trim();
+        ent.Nome = dto.NomeFantasia.Trim();
         ent.RazaoSocial = dto.RazaoSocial.Trim();
         ent.Cnpj = cnpj;
-        ent.EnderecoId = dto.EnderecoId;
 
         await ctx.SaveChangesAsync(ct);
     }

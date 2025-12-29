@@ -66,7 +66,7 @@ public class PessoasController : ControllerBase
         if (dto is null) return BadRequest("Payload inválido.");
 
         var tipo = (dto.Tipo ?? string.Empty).Trim().ToUpperInvariant();
-        if (tipo != "FISICA" && tipo != "JURIDICA")
+        if (tipo != "PF" && tipo != "PJ")
             return BadRequest("Tipo deve ser 'FISICA' ou 'JURIDICA'.");
 
         if (dto.Endereco is null)
@@ -91,16 +91,16 @@ public class PessoasController : ControllerBase
 
         // 2) Cria Pessoa PF ou PJ
         Guid pessoaId;
-        if (tipo == "FISICA")
+        if (tipo == "PF")
         {
-            var pfReq = new PessoaFisicaCreateDto(
+            var pfReq = new DadosPessoaFisicaDto(
                 Nome: (dto.DadosPessoaFisica.Nome ?? string.Empty).Trim(),
                 Rg: (dto.DadosPessoaFisica.Rg ?? string.Empty).Trim(),
                 OrgaoExpedidor: (dto.DadosPessoaFisica.OrgaoExpedidor ?? string.Empty).Trim(),
                 Cpf: Limpar(dto.Documento).PadLeft(11, '0'),
                 DataNascimento: dto.DadosPessoaFisica.DataNascimento,
-                EnderecoId: endereco.Id,
-                OrigemId: dto.OrigemId
+                EstadoCivil: dto.DadosPessoaFisica.EstadoCivil,
+                Nacionalidade: dto.DadosPessoaFisica.Nacionalidade
             );
 
             pessoaId = await _pessoaFisicaService.CriarAsync(pfReq, ct);
@@ -109,12 +109,11 @@ public class PessoasController : ControllerBase
         {
             // Se Nome (fantasia) for realmente opcional e seu DTO não aceita null,
             // mande string.Empty ou mude a assinatura para string? Nome
-            var pjReq = new PessoaJuridicaCreateDto(
+            var pjReq = new DadosPessoaJuridicaDto(
                 NomeFantasia: (dto.DadosPessoaJuridica.NomeFantasia ?? string.Empty).Trim(),
                 RazaoSocial: (dto.DadosPessoaJuridica.RazaoSocial ?? string.Empty).Trim(),
                 Cnpj: Limpar(dto.Documento).PadLeft(14, '0'),
-                EnderecoId: endereco.Id,
-                OrigemId: dto.OrigemId
+                InscricaoEstadual: dto.DadosPessoaJuridica.InscricaoEstadual
             );
 
             pessoaId = await _pessoaJuridicaService.CriarAsync(pjReq, ct);
@@ -155,7 +154,6 @@ public class PessoasController : ControllerBase
     {
         if (id == Guid.Empty) return BadRequest("Id inválido.");
         if (dto is null) return BadRequest("Payload inválido.");
-
 
         // Endereço: upsert opcional
         Guid? enderecoId = null;
@@ -199,25 +197,28 @@ public class PessoasController : ControllerBase
         if (dto.Tipo == "PF")
         {
             var pf = new PessoaFisicaUpdateDto(
-                Nome: dto.Nome?.Trim(),
+                Nome: dto.DadosPessoaFisica.Nome?.Trim(),
+                Rg: (dto.DadosPessoaFisica.Rg ?? string.Empty).Trim(),
+                OrgaoExpedidor: (dto.DadosPessoaFisica.OrgaoExpedidor ?? string.Empty).Trim(),
+                Nacionalidade: (dto.DadosPessoaFisica.Nacionalidade ?? string.Empty).Trim(),
                 Cpf: string.IsNullOrWhiteSpace(dto.Documento) ? null : Limpar(dto.Documento).PadLeft(11, '0'),
-                DataNascimento: dto.DataNascimento,
-                EnderecoId: enderecoId,
-                OrigemId: dto.OrigemId
+                DataNascimento: dto.DadosPessoaFisica.DataNascimento,
+                EstadoCivil: dto.DadosPessoaFisica.EstadoCivil
             );
             await _pessoaFisicaService.AtualizarAsync(id, pf, ct);
         }
         else // "PJ"
         {
             var pj = new PessoaJuridicaUpdateDto(
-                Nome: string.IsNullOrWhiteSpace(dto.Nome) ? null : dto.Nome!.Trim(),
-                RazaoSocial: dto.RazaoSocial?.Trim(),
+                RazaoSocial: dto.DadosPessoaJuridica.RazaoSocial?.Trim(),
+                NomeFantasia: dto.DadosPessoaJuridica.NomeFantasia?.Trim(),
                 Cnpj: string.IsNullOrWhiteSpace(dto.Documento) ? null : Limpar(dto.Documento).PadLeft(14, '0'),
-                EnderecoId: enderecoId,
-                OrigemId: dto.OrigemId
+                InscricaoEstadual: dto.DadosPessoaJuridica.InscricaoEstadual?.Trim()
             );
             await _pessoaJuridicaService.AtualizarAsync(id, pj, ct);
         }
+
+        await _pessoaService.AtualizarAsync(id, dto, enderecoId, ct);
 
         return NoContent();
     }

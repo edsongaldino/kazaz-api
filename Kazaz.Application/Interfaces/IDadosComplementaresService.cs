@@ -9,5 +9,5 @@ namespace Kazaz.Application.Interfaces;
 
 public interface IDadosComplementaresService
 {
-	Task CriarOuAtualizarAsync(Guid pessoaId, DadosComplementaresCreateDto dto, CancellationToken ct);
+	Task CriarOuAtualizarAsync(Guid pessoaId, DadosComplementaresDto dto, CancellationToken ct);
 }

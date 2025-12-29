@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace Kazaz.Application.DTOs;
 
-public record ConjugeCreateDto(
+public record ConjugeDto(
+	Guid? Id,
 	string Nome,
 	string Cpf,
 	string? Rg,
@@ -14,4 +15,9 @@ public record ConjugeCreateDto(
 	DateOnly? DataNascimento,
 	string? Telefone,
 	string? Email
+);
+
+public sealed record ConjugeUpdateDto(
+    string? Nome,
+    string? Documento
 );

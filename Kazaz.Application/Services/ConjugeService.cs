@@ -21,7 +21,7 @@ public class ConjugeService : IConjugeService
 		_context = context;
 	}
 
-	public async Task CriarOuAtualizarAsync(Guid pessoaId, ConjugeCreateDto dto, CancellationToken ct)
+	public async Task CriarOuAtualizarAsync(Guid pessoaId, ConjugeDto dto, CancellationToken ct)
 	{
 		var existente = await _context.Set<Conjuge>()
 			.FirstOrDefaultAsync(c => c.PessoaId == pessoaId, ct);

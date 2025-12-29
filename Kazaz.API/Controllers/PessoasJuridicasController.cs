@@ -12,7 +12,7 @@ public class PessoasJuridicasController : ControllerBase
     public PessoasJuridicasController(IPessoaJuridicaService service) => _service = service;
 
     [HttpPost]
-    public async Task<IActionResult> Criar([FromBody] PessoaJuridicaCreateDto dto, CancellationToken ct)
+    public async Task<IActionResult> Criar([FromBody] DadosPessoaJuridicaDto dto, CancellationToken ct)
     {
         var id = await _service.CriarAsync(dto, ct);
         return Created($"/api/pessoas/{id}", new { id });

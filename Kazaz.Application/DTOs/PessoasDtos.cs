@@ -13,39 +13,39 @@ public record PessoaListDto(
 );
 
 // PF
-public record PessoaFisicaCreateDto(
+public record DadosPessoaFisicaDto(
     string Cpf,
     string Rg,
     string Nome,
     string OrgaoExpedidor,
     DateOnly? DataNascimento,
-    Guid? EnderecoId,
-    Guid? OrigemId
+    EstadoCivil EstadoCivil,
+    string? Nacionalidade
 );
 
-public record PessoaFisicaUpdateDto(
-    string Nome,
-    string Cpf,
+public sealed record PessoaFisicaUpdateDto(
+    string? Nome,
+    string? Cpf,
     DateOnly? DataNascimento,
-    Guid? EnderecoId,
-    Guid? OrigemId
+    string? Rg,
+    string OrgaoExpedidor,
+    string? Nacionalidade,
+    string? EstadoCivil
 );
 
 // PJ
-public record PessoaJuridicaCreateDto(
+public record DadosPessoaJuridicaDto(
     string NomeFantasia,
     string RazaoSocial,
     string Cnpj,
-    Guid? EnderecoId,
-    Guid? OrigemId
+    string? InscricaoEstadual
 );
 
-public record PessoaJuridicaUpdateDto(
-    string Nome,
-    string RazaoSocial,
-    string Cnpj,
-    Guid? EnderecoId,
-    Guid? OrigemId
+public sealed record PessoaJuridicaUpdateDto(
+    string? RazaoSocial,
+    string? NomeFantasia,
+    string? Cnpj,
+    string? InscricaoEstadual
 );
 
 
@@ -54,30 +54,41 @@ public record PessoaCreateDto(
     string Documento,
     EnderecoCreateDto Endereco,
     Guid? OrigemId,
-    PessoaFisicaCreateDto? DadosPessoaFisica,
-    PessoaJuridicaCreateDto? DadosPessoaJuridica,
-    List<ContatoCreateDto>? Contatos,
-	DadosComplementaresCreateDto? DadosComplementares,
-    ConjugeCreateDto? Conjuge
+    DadosPessoaFisicaDto? DadosPessoaFisica,
+    DadosPessoaJuridicaDto? DadosPessoaJuridica,
+    List<ContatoDto>? Contatos,
+	DadosComplementaresDto? DadosComplementares,
+    ConjugeDto? Conjuge
 );
 
-public record PessoaDetailsDto(
+public sealed record PessoaDetailsDto(
     Guid Id,
-    string TipoPessoa,     // "FISICA" ou "JURIDICA"
+    string TipoPessoa, // "PF" | "PJ" (ou "FISICA" | "JURIDICA")
     string? Nome,
-    string? Documento,     // CPF ou CNPJ conforme o tipo
-    DateOnly? DataNascimento,
-    string? RazaoSocial,
+    string? Documento,
+    Guid? OrigemId,
+
     EnderecoResponseDto? Endereco,
-    Guid? OrigemId
+
+    DadosPessoaFisicaDto? DadosPessoaFisica,
+    DadosPessoaJuridicaDto? DadosPessoaJuridica,
+
+    List<ContatoDto>? Contatos,
+
+    DadosComplementaresDto? DadosComplementares,
+    ConjugeDto? Conjuge
 );
 
 public sealed record PessoaUpdateDto(
-    string Tipo,               // "PF" | "PJ"  (aceito também FISICA/JURIDICA)
-    string? Nome,              // PF: Nome | PJ: Nome Fantasia
-    string? RazaoSocial,       // PJ
-    string? Documento,         // PF: CPF | PJ: CNPJ
-    DateOnly? DataNascimento,  // PF
+    Guid Id,
+    string Tipo,
+    string? Documento,
+    Guid? OrigemId,
+    Guid? EnderecoId,
     EnderecoUpdateDto? Endereco,
-    Guid? OrigemId
+    PessoaFisicaUpdateDto? DadosPessoaFisica,
+    PessoaJuridicaUpdateDto? DadosPessoaJuridica,
+    List<ContatoUpdateDto>? Contatos,
+    DadosComplementaresUpdateDto? DadosComplementares,
+    ConjugeUpdateDto? Conjuge
 );

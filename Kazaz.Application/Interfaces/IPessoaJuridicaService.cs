@@ -9,7 +9,7 @@ namespace Kazaz.Application.Interfaces;
 
 public interface IPessoaJuridicaService
 {
-    Task<Guid> CriarAsync(PessoaJuridicaCreateDto dto, CancellationToken ct);
+    Task<Guid> CriarAsync(DadosPessoaJuridicaDto dto, CancellationToken ct);
     Task AtualizarAsync(Guid id, PessoaJuridicaUpdateDto dto, CancellationToken ct);
     Task RemoverAsync(Guid id, CancellationToken ct);
 }

@@ -15,7 +15,7 @@ public class DadosComplementaresService : IDadosComplementaresService
 		_context = context;
 	}
 
-	public async Task CriarOuAtualizarAsync(Guid pessoaId, DadosComplementaresCreateDto dto, CancellationToken ct)
+	public async Task CriarOuAtualizarAsync(Guid pessoaId, DadosComplementaresDto dto, CancellationToken ct)
 	{
 		var existente = await _context.Set<DadosComplementares>()
 			.FirstOrDefaultAsync(d => d.PessoaId == pessoaId, ct);
