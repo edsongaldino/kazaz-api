@@ -22,7 +22,10 @@ public class PessoaFisicaService(ApplicationDbContext ctx) : IPessoaFisicaServic
             Id = Guid.NewGuid(),
             Nome = dto.Nome.Trim(),
             Cpf = cpf,
-            DataNascimento = dto.DataNascimento
+            DataNascimento = dto.DataNascimento,
+            Rg = dto.Rg,
+            OrgaoExpedidor = dto.OrgaoExpedidor,
+            Nacionalidade = "Brasileira"
         };
 
         ctx.Add(ent);
@@ -47,6 +50,7 @@ public class PessoaFisicaService(ApplicationDbContext ctx) : IPessoaFisicaServic
         ent.Cpf = cpf;
         ent.DataNascimento = dto.DataNascimento;
         ent.OrgaoExpedidor = dto.OrgaoExpedidor;
+        ent.EstadoCivil = dto.EstadoCivil ?? EstadoCivil.NaoInformado;
 
         await ctx.SaveChangesAsync(ct);
     }

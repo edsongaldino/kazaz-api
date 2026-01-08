@@ -19,9 +19,7 @@ public class ApplicationDbContext : DbContext
 	public DbSet<DadosComplementares> DadosComplementares => Set<DadosComplementares>();
 	public DbSet<Socio> Socios => Set<Socio>();
     public DbSet<Imovel> Imoveis => Set<Imovel>();
-    public DbSet<VinculoPessoaImovel> Vinculos => Set<VinculoPessoaImovel>();
     public DbSet<Foto> Fotos => Set<Foto>();
-    public DbSet<PerfilVinculoImovel> PerfisVinculoImovel => Set<PerfilVinculoImovel>();
 
     public DbSet<Documento> Documentos => Set<Documento>();
     public DbSet<TipoDocumento> TiposDocumento => Set<TipoDocumento>();
@@ -33,8 +31,14 @@ public class ApplicationDbContext : DbContext
     public DbSet<Contato> Contatos => Set<Contato>();
 	public DbSet<Conjuge> Conjuge => Set<Conjuge>();
 
+    public DbSet<Caracteristica> Caracteristica => Set<Caracteristica>();
 
-	public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+    public DbSet<TipoImovel> TipoImovel => Set<TipoImovel>();
+
+    public DbSet<Contrato> Contratos => Set<Contrato>();
+    public DbSet<ContratoParte> ContratoPartes => Set<ContratoParte>();
+
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
 
     protected override void OnModelCreating(ModelBuilder mb)

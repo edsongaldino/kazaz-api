@@ -1,10 +1,12 @@
 using Kazaz.Application;
 using Kazaz.Application.Interfaces;
+using Kazaz.Application.Interfaces.Storage;
 using Kazaz.Application.Services;
 using Kazaz.Domain.Interfaces;
 using Kazaz.Infrastructure;
 using Kazaz.Infrastructure.Data;
 using Kazaz.Infrastructure.Repositories;
+using Kazaz.Infrastructure.Storage;
 using Kazaz.SharedKernel;
 using Kazaz.SharedKernel.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -16,6 +18,7 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
 // Configurações
 var configuration = builder.Configuration;
 var jwtSettings = configuration.GetSection("JwtSettings");
@@ -23,6 +26,8 @@ var key = Encoding.ASCII.GetBytes(jwtSettings["Secret"]);
 
 // Serviços
 builder.Services.AddControllers();
+
+builder.Services.AddSingleton<IFileStorage, LocalFileStorage>();
 
 builder.Services.AddDbContext<ApplicationDbContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))

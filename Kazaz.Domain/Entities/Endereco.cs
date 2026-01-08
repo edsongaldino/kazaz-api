@@ -38,3 +38,13 @@ public class EnderecoRequest
         };
     }
 }
+
+public record EnderecoListDto(
+    string Cep,
+    string Logradouro,
+    string Numero,
+    string? Complemento,
+    string Bairro,
+    string? CidadeNome,
+    string? EstadoSigla
+);

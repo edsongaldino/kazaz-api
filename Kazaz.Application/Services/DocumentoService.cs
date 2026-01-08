@@ -1,5 +1,6 @@
 ﻿using Kazaz.Application.DTOs;
 using Kazaz.Application.Interfaces;
+using Kazaz.Application.Interfaces.Storage;
 using Kazaz.Domain.Entities;
 using Kazaz.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Kazaz.Application.Services;
 
-public class DocumentoService(ApplicationDbContext ctx) : IDocumentoService
+public class DocumentoService(ApplicationDbContext ctx, IFileStorage storage) : IDocumentoService
 {
     public async Task<IReadOnlyList<DocumentoListDto>> ListarPorPessoaAsync(Guid pessoaId, CancellationToken ct)
     {
@@ -179,7 +180,12 @@ public class DocumentoService(ApplicationDbContext ctx) : IDocumentoService
     {
         var ent = await ctx.Set<Documento>().FirstOrDefaultAsync(x => x.Id == id, ct);
         if (ent is null) return;
+
+        var caminho = ent.Caminho;
+
         ctx.Remove(ent);
         await ctx.SaveChangesAsync(ct);
+
+        await storage.DeleteAsync(caminho, ct);
     }
 }

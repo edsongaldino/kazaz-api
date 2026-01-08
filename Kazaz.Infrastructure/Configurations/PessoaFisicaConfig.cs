@@ -31,8 +31,7 @@ public sealed class PessoaFisicaConfig : IEntityTypeConfiguration<DadosPessoaFis
 
         b.Property(x => x.EstadoCivil)
          .HasColumnName("estado_civil")
-         .HasConversion<string>()
-         .HasMaxLength(30)
+         .HasConversion<int>()
          .IsRequired();
     }
 }

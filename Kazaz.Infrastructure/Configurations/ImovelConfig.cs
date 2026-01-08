@@ -54,10 +54,5 @@ public sealed class ImovelConfig : IEntityTypeConfiguration<Imovel>
 			.WithOne(x => x.Imovel)
 			.HasForeignKey(x => x.ImovelId)
 			.OnDelete(DeleteBehavior.Cascade);
-
-		b.HasMany(x => x.Vinculos)
-			.WithOne(x => x.Imovel)
-			.HasForeignKey(x => x.ImovelId)
-			.OnDelete(DeleteBehavior.Cascade);
 	}
 }

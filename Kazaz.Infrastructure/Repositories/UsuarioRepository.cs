@@ -14,11 +14,22 @@ public class UsuarioRepository : IUsuarioRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<Usuario>> ObterTodosAsync() =>
-        await _context.Usuarios.ToListAsync();
+    public async Task<IEnumerable<Usuario>> ObterTodosAsync()
+    {
+        return await _context.Usuarios
+            .AsNoTracking()
+            .Include(u => u.Perfil)
+            .ToListAsync();
+    }
 
-    public async Task<Usuario> ObterPorIdAsync(Guid id) =>
-        await _context.Usuarios.FindAsync(id);
+    public async Task<Usuario?> ObterPorIdAsync(Guid id)
+    {
+        return await _context.Usuarios
+            .AsNoTracking()
+            .Include(u => u.Perfil)
+            .FirstOrDefaultAsync(u => u.Id == id);
+    }
+
 
     public async Task<Usuario> CriarAsync(Usuario usuario)
     {
@@ -44,6 +55,7 @@ public class UsuarioRepository : IUsuarioRepository
         return true;
     }
 
-    public async Task<Usuario> ObterPorEmailSenhaAsync(string email, string senha) =>
-        await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == email && u.Senha == senha);
+    public async Task<Usuario?> ObterPorEmailAsync(string email) =>
+    await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == email);
+
 }

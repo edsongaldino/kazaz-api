@@ -3,7 +3,12 @@ namespace Kazaz.Application.DTOs;
 public record ImovelListDto(
     Guid Id,
     string Codigo,
-    Guid EnderecoId
+	string Titulo,
+    FinalidadeImovel Finalidade,
+    StatusImovel Status,
+    string TipoImovelNome,
+    EnderecoListDto? Endereco
+
 );
 
 public record ImovelUpsertDto(
@@ -14,8 +19,7 @@ public record ImovelUpsertDto(
 	Guid TipoImovelId,
 	EnderecoCreateDto Endereco,
 	string? Observacoes,
-	List<ImovelCaracteristicaUpsertDto> Caracteristicas,
-	List<VinculoPessoaImovelUpsertDto> Vinculos
+	List<ImovelCaracteristicaUpsertDto> Caracteristicas
 );
 
 public sealed record ImovelDetailsDto(
@@ -28,8 +32,26 @@ public sealed record ImovelDetailsDto(
 	string TipoImovelNome,
 	Guid EnderecoId,
 	string? Observacoes,
+	Endereco? Endereco,
 	List<ImovelCaracteristicaDto> Caracteristicas,
-	List<VinculoPessoaImovelDto> Vinculos,
+	List<ImovelContratoResumoDto> Contratos,
 	List<ImovelFotoDto> Fotos,
 	List<ImovelDocumentoDto> Documentos
+);
+
+public sealed record ImovelContratoResumoDto(
+    Guid Id,
+    string Numero,
+    TipoContrato Tipo,
+    StatusContrato Status,
+    DateOnly InicioVigencia,
+    DateOnly? FimVigencia,
+    List<ImovelContratoParteDto> Partes
+);
+
+public sealed record ImovelContratoParteDto(
+    Guid PessoaId,
+    string PessoaNome,
+    PapelContrato Papel,
+    decimal? Percentual
 );

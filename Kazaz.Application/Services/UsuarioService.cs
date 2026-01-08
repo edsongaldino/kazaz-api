@@ -17,9 +17,15 @@ public class UsuarioService : IUsuarioService
         _tokenService = tokenService;
     }
 
-    public async Task<IEnumerable<UsuarioDto>> ObterTodosAsync() =>
-        (await _repo.ObterTodosAsync()).Select(u => new UsuarioDto {
-            Id = u.Id, Email = u.Email
+    public async Task<IEnumerable<UsuarioListDto>> ObterTodosAsync() =>
+        (await _repo.ObterTodosAsync()).Select(u => new UsuarioListDto
+        {
+            Id = u.Id, 
+            Email = u.Email, 
+            Nome = u.Nome, 
+            PerfilId = u.PerfilId, 
+            Ativo = u.Ativo, 
+            PerfilNome = u.Perfil.Nome
         });
 
     public async Task<UsuarioDto> ObterPorIdAsync(Guid id)
@@ -31,9 +37,12 @@ public class UsuarioService : IUsuarioService
     public async Task<UsuarioDto> CriarAsync(UsuarioDto dto)
     {
         var u = new Usuario {
+            Nome = dto.Nome,
             Id = Guid.NewGuid(),
             Email = dto.Email,
-            Senha = "123456" // Idealmente usar hash e vir da API
+            Senha = PasswordHasher.Hash(dto.Senha),
+            Ativo = dto.Ativo,
+            PerfilId = dto.PerfilId
         };
         await _repo.CriarAsync(u);
         dto.Id = u.Id;
@@ -52,9 +61,17 @@ public class UsuarioService : IUsuarioService
 
     public async Task<bool> RemoverAsync(Guid id) => await _repo.RemoverAsync(id);
 
-    public async Task<string> AutenticarAsync(LoginDto login)
+    public async Task<string?> AutenticarAsync(LoginDto login)
     {
-        var usuario = await _repo.ObterPorEmailSenhaAsync(login.Email, login.Senha);
-        return usuario != null ? _tokenService.GerarToken(usuario) : null;
+        var email = login.Email.Trim().ToLowerInvariant();
+
+        var usuario = await _repo.ObterPorEmailAsync(email);
+        if (usuario is null) return null;
+
+        if (!PasswordHasher.Verify(login.Senha, usuario.Senha))
+            return null;
+
+        return _tokenService.GerarToken(usuario);
     }
+
 }

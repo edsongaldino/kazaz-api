@@ -5,9 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Kazaz.API.Controllers;
 
-[Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/usuarios")]
 public class UsuarioController : ControllerBase
 {
     private readonly IUsuarioService _service;

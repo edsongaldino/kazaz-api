@@ -19,7 +19,7 @@ public record DadosPessoaFisicaDto(
     string Nome,
     string OrgaoExpedidor,
     DateOnly? DataNascimento,
-    EstadoCivil EstadoCivil,
+    EstadoCivil? EstadoCivil,
     string? Nacionalidade
 );
 
@@ -30,7 +30,7 @@ public sealed record PessoaFisicaUpdateDto(
     string? Rg,
     string OrgaoExpedidor,
     string? Nacionalidade,
-    string? EstadoCivil
+    EstadoCivil? EstadoCivil
 );
 
 // PJ

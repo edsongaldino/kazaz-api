@@ -27,3 +27,30 @@ public enum StatusImovel
 	Vendido = 4,
 	Alugado = 5
 }
+
+public enum TipoContrato
+{
+    Locacao = 1,
+    Venda = 2,
+    Compra = 3 // opcional; você pode manter só Venda futuramente
+}
+
+public enum StatusContrato
+{
+    Rascunho = 1,
+    Ativo = 2,
+    Encerrado = 3,
+    Cancelado = 4
+}
+
+public enum PapelContrato
+{
+    // Locação
+    Locador = 1,
+    Locatario = 2,
+    Fiador = 3,
+
+    // Venda / Compra
+    Vendedor = 10,
+    Comprador = 11
+}

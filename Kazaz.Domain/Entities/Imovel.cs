@@ -23,7 +23,6 @@ public sealed class Imovel
 
 	public ICollection<ImovelCaracteristica> Caracteristicas { get; set; } = new List<ImovelCaracteristica>();
 
-	public List<VinculoPessoaImovel> Vinculos { get; set; } = new();
 	public ICollection<Foto> Fotos { get; set; } = new List<Foto>();
 	public ICollection<ImovelDocumento> Documentos { get; set; } = new List<ImovelDocumento>();
 }

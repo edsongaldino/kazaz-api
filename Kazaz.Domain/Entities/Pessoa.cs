@@ -22,5 +22,5 @@ public class Pessoa
 	public DadosComplementares? DadosComplementares { get; set; }
 
 	public ICollection<Contato> Contatos { get; set; } = new List<Contato>();
-    public List<VinculoPessoaImovel> Vinculos { get; set; } = new();
+    public ICollection<ContratoParte> Contratos { get; set; } = new List<ContratoParte>();
 }

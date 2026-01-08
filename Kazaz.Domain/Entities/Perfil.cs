@@ -9,9 +9,9 @@ namespace Kazaz.Domain.Entities;
 
 public class Perfil
 {
-    [Key]
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid Id { get; set; }
+    public string Nome { get; set; } = default!;
 
-    [Required, MaxLength(150)]
-    public required string Nome { get; set; }
+    // opcional: se quiser navegar do Perfil -> Usuarios
+    public ICollection<Usuario> Usuarios { get; set; } = new List<Usuario>();
 }

@@ -155,6 +155,9 @@ public class PessoasController : ControllerBase
         if (id == Guid.Empty) return BadRequest("Id inválido.");
         if (dto is null) return BadRequest("Payload inválido.");
 
+        if (!ModelState.IsValid)
+            return ValidationProblem(ModelState);
+
         // Endereço: upsert opcional
         Guid? enderecoId = null;
         if (dto.Endereco is not null)
