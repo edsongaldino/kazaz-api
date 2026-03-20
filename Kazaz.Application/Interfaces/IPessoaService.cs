@@ -18,5 +18,8 @@ namespace Kazaz.Application.Interfaces
 
         Task RemoverAsync(Guid id, CancellationToken ct = default);
         Task AtualizarAsync(Guid id, PessoaUpdateDto dto, Guid? enderecoId, CancellationToken ct);
+        Task<Guid> CriarBaseAsync(string nome, Guid? enderecoId, Guid? origemId, CancellationToken ct);
+        Task<PessoaDetailsDto?> ObterPorDocumentoAsync(string documentoDigits, CancellationToken ct);
+
     }
 }

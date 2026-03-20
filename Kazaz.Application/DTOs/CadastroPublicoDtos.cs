@@ -34,3 +34,8 @@ public record FinalizarCadastroPublicoResponse(
     Guid PessoaId,
     PapelContrato Papel
 );
+
+public class VincularPessoaCadastroPublicoRequest
+{
+    public Guid PessoaId { get; set; }
+}

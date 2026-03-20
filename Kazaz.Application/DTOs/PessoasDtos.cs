@@ -38,18 +38,21 @@ public record DadosPessoaJuridicaDto(
     string NomeFantasia,
     string RazaoSocial,
     string Cnpj,
-    string? InscricaoEstadual
+    string InscricaoEstadual,
+    DateOnly? DataAbertura
 );
 
 public sealed record PessoaJuridicaUpdateDto(
     string? RazaoSocial,
     string? NomeFantasia,
     string? Cnpj,
-    string? InscricaoEstadual
+    string? InscricaoEstadual,
+    DateOnly? DataAbertura
 );
 
 
 public record PessoaCreateDto(
+    Guid? PessoaId,
     string Tipo,
     string Documento,
     EnderecoCreateDto Endereco,

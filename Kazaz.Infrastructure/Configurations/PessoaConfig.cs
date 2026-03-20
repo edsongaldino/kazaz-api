@@ -9,8 +9,6 @@ public sealed class PessoaConfig : IEntityTypeConfiguration<Pessoa>
         b.ToTable("pessoas");
         b.HasKey(x => x.Id);
 
-        b.Property(x => x.Nome).IsRequired().HasMaxLength(200);
-
         b.HasOne(x => x.Endereco)
          .WithMany()
          .HasForeignKey(x => x.EnderecoId)
@@ -18,12 +16,12 @@ public sealed class PessoaConfig : IEntityTypeConfiguration<Pessoa>
 
         b.HasOne(p => p.PessoaFisica)
          .WithOne(pf => pf.Pessoa)
-         .HasForeignKey<DadosPessoaFisica>(pf => pf.Id)   // shared PK
+         .HasForeignKey<DadosPessoaFisica>(pf => pf.PessoaId)   // shared PK
          .OnDelete(DeleteBehavior.Cascade);
 
         b.HasOne(p => p.PessoaJuridica)
          .WithOne(pj => pj.Pessoa)
-         .HasForeignKey<DadosPessoaJuridica>(pj => pj.Id) // shared PK
+         .HasForeignKey<DadosPessoaJuridica>(pj => pj.PessoaId) // shared PK
          .OnDelete(DeleteBehavior.Cascade);
 
         b.Property(x => x.OrigemId)

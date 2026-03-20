@@ -3,6 +3,7 @@ using System;
 using Kazaz.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Kazaz.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260109013149_AjustarVinculoPF_PJPorPessoaId")]
+    partial class AjustarVinculoPF_PJPorPessoaId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -938,83 +941,6 @@ namespace Kazaz.Infrastructure.Migrations
                     b.ToTable("pessoas_documentos", (string)null);
                 });
 
-            modelBuilder.Entity("Kazaz.Domain.Entities.RegraDocumentoCadastro", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<bool>("Ativo")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true)
-                        .HasColumnName("ativo");
-
-                    b.Property<int>("Multiplicidade")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(1)
-                        .HasColumnName("multiplicidade");
-
-                    b.Property<bool>("Obrigatorio")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true)
-                        .HasColumnName("obrigatorio");
-
-                    b.Property<int>("Ordem")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("ordem");
-
-                    b.Property<int>("PapelContrato")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("papel_contrato");
-
-                    b.Property<string>("Rotulo")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("rotulo");
-
-                    b.Property<int>("TipoContrato")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("tipo_contrato");
-
-                    b.Property<Guid>("TipoDocumentoId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tipo_documento_id");
-
-                    b.Property<int>("TipoPessoa")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("tipo_pessoa");
-
-                    b.HasKey("Id")
-                        .HasName("pk_regras_documento_cadastro");
-
-                    b.HasIndex("TipoDocumentoId")
-                        .HasDatabaseName("ix_regras_documento_cadastro_tipo_documento_id");
-
-                    b.HasIndex("TipoPessoa", "TipoContrato", "PapelContrato", "Ativo")
-                        .HasDatabaseName("ix_regras_documento_cadastro_tipo_pessoa_tipo_contrato_papel_c");
-
-                    b.HasIndex("TipoDocumentoId", "TipoPessoa", "TipoContrato", "PapelContrato", "Rotulo")
-                        .IsUnique()
-                        .HasDatabaseName("ix_regras_documento_cadastro_tipo_documento_id_tipo_pessoa_tip");
-
-                    b.ToTable("regras_documento_cadastro", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_regras_documento_cadastro_multiplicidade", "multiplicidade >= 1");
-                        });
-                });
-
             modelBuilder.Entity("Kazaz.Domain.Entities.Socio", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1445,18 +1371,6 @@ namespace Kazaz.Infrastructure.Migrations
                     b.Navigation("Pessoa");
 
                     b.Navigation("Tipo");
-                });
-
-            modelBuilder.Entity("Kazaz.Domain.Entities.RegraDocumentoCadastro", b =>
-                {
-                    b.HasOne("Kazaz.Domain.Entities.TipoDocumento", "TipoDocumento")
-                        .WithMany()
-                        .HasForeignKey("TipoDocumentoId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_regras_documento_cadastro_tipos_documento_tipo_documento_id");
-
-                    b.Navigation("TipoDocumento");
                 });
 
             modelBuilder.Entity("Kazaz.Domain.Entities.Socio", b =>

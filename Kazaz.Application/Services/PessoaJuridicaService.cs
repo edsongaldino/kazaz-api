@@ -8,7 +8,7 @@ namespace Kazaz.Application.Services;
 
 public class PessoaJuridicaService(ApplicationDbContext ctx) : IPessoaJuridicaService
 {
-    public async Task<Guid> CriarAsync(DadosPessoaJuridicaDto dto, CancellationToken ct)
+    public async Task<Guid> CriarAsync(Guid pessoaId, DadosPessoaJuridicaDto dto, CancellationToken ct)
     {
         var cnpj = LimparCnpj(dto.Cnpj);
 
@@ -18,30 +18,35 @@ public class PessoaJuridicaService(ApplicationDbContext ctx) : IPessoaJuridicaSe
 
         var ent = new DadosPessoaJuridica
         {
-            Id = Guid.NewGuid(),
-            Nome = dto.NomeFantasia.Trim(),
+            PessoaId = pessoaId,
+            NomeFantasia = dto.NomeFantasia.Trim(),
             RazaoSocial = dto.RazaoSocial.Trim(),
-            Cnpj = cnpj
+            DataAbertura = dto.DataAbertura,
+            Cnpj = cnpj,
+            InscricaoEstadual = dto.InscricaoEstadual
         };
         ctx.Add(ent);
         await ctx.SaveChangesAsync(ct);
-        return ent.Id;
+        return ent.PessoaId;
     }
 
     public async Task AtualizarAsync(Guid id, PessoaJuridicaUpdateDto dto, CancellationToken ct)
     {
         var ent = await ctx.Set<DadosPessoaJuridica>()
-            .FirstOrDefaultAsync(x => x.Id == id, ct)
+            .FirstOrDefaultAsync(x => x.PessoaId == id, ct)
             ?? throw new KeyNotFoundException("Pessoa Jurídica não encontrada.");
 
         var cnpj = LimparCnpj(dto.Cnpj);
         var existeOutro = await ctx.Set<DadosPessoaJuridica>()
-            .AnyAsync(x => x.Id != id && x.Cnpj == cnpj, ct);
+            .AnyAsync(x => x.PessoaId != id && x.Cnpj == cnpj, ct);
         if (existeOutro) throw new InvalidOperationException("CNPJ já cadastrado.");
 
-        ent.Nome = dto.NomeFantasia.Trim();
         ent.RazaoSocial = dto.RazaoSocial.Trim();
         ent.Cnpj = cnpj;
+        ent.DataAbertura = dto.DataAbertura;
+        ent.InscricaoEstadual = dto.InscricaoEstadual;
+        ent.NomeFantasia = dto.NomeFantasia;
+
 
         await ctx.SaveChangesAsync(ct);
     }
@@ -69,7 +74,7 @@ public class PessoaJuridicaService(ApplicationDbContext ctx) : IPessoaJuridicaSe
             var digits = new string(t.Where(char.IsDigit).ToArray());
 
             q = q.Where(p =>
-                EF.Functions.ILike(p.Nome, $"%{t}%") ||
+                EF.Functions.ILike(p.NomeFantasia, $"%{t}%") ||
                 EF.Functions.ILike(p.RazaoSocial, $"%{t}%") ||
                 (!string.IsNullOrEmpty(digits) && EF.Functions.ILike(p.Cnpj, $"%{digits}%"))
             );
@@ -78,12 +83,12 @@ public class PessoaJuridicaService(ApplicationDbContext ctx) : IPessoaJuridicaSe
         var total = await q.CountAsync(ct);
 
         var items = await q
-            .OrderBy(p => p.Nome)
+            .OrderBy(p => p.NomeFantasia)
             .ThenBy(p => p.RazaoSocial)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(p => new PessoaListDto(
-                p.Id, "JURIDICA", p.Nome, p.Cnpj, null, p.RazaoSocial, p.EnderecoId, p.OrigemId))
+                p.PessoaId, "JURIDICA", p.NomeFantasia, p.Cnpj, null, p.RazaoSocial, p.Pessoa.EnderecoId, p.Pessoa.OrigemId))
             .ToListAsync(ct);
 
         return (items, total);
@@ -92,9 +97,9 @@ public class PessoaJuridicaService(ApplicationDbContext ctx) : IPessoaJuridicaSe
     public async Task<PessoaListDto?> ObterAsync(Guid id, CancellationToken ct)
     {
         return await ctx.Set<DadosPessoaJuridica>().AsNoTracking()
-            .Where(p => p.Id == id)
+            .Where(p => p.PessoaId == id)
             .Select(p => new PessoaListDto(
-                p.Id, "JURIDICA", p.Nome, p.Cnpj, null, p.RazaoSocial, p.EnderecoId, p.OrigemId))
+                p.PessoaId, "JURIDICA", p.NomeFantasia, p.Cnpj, null, p.RazaoSocial, p.Pessoa.EnderecoId, p.Pessoa.OrigemId))
             .FirstOrDefaultAsync(ct);
     }
 

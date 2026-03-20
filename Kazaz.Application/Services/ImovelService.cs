@@ -114,10 +114,9 @@ public class ImovelService : IImovelService
                 FimVigencia: c.FimVigencia,
                 Partes: c.Partes
                     .OrderBy(p => p.Papel)
-                    .ThenBy(p => p.Pessoa.Nome)
                     .Select(p => new ImovelContratoParteDto(
                         PessoaId: p.PessoaId,
-                        PessoaNome: p.Pessoa.Nome,
+                        PessoaNome: p.Pessoa.PessoaFisica.Nome ?? p.Pessoa.PessoaJuridica.NomeFantasia,
                         Papel: p.Papel,
                         Percentual: p.Percentual
                     ))

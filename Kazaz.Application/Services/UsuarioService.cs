@@ -49,12 +49,15 @@ public class UsuarioService : IUsuarioService
         return dto;
     }
 
-    public async Task<UsuarioDto> AtualizarAsync(Guid id, UsuarioDto dto)
+    public async Task<UsuarioUpdateDto> AtualizarAsync(Guid id, UsuarioUpdateDto dto)
     {
         var u = await _repo.ObterPorIdAsync(id);
         if (u == null) return null;
 
         u.Email = dto.Email;
+        u.Nome = dto.Nome;
+        u.Ativo = dto.Ativo;
+        u.PerfilId = dto.PerfilId;
         await _repo.AtualizarAsync(u);
         return dto;
     }

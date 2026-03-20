@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Kazaz.Domain.Entities;
 
-public sealed class DadosPessoaJuridica : Pessoa
+public sealed class DadosPessoaJuridica
 {
-    public Guid Id { get; set; }          // PK e FK (shared)
+    public Guid PessoaId { get; set; }
     public Pessoa Pessoa { get; set; } = null!;
 
     public string Cnpj { get; set; } = default!;

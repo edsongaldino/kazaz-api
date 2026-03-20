@@ -17,4 +17,8 @@ public interface ICadastroPublicoService
 
     // Marca convite como usado (e depois a gente pluga validação obrigatórios)
     Task<FinalizarCadastroPublicoResponse> ConcluirAsync(string token, CancellationToken ct);
+
+    Task<CadastroPublicoStatusResponse> ObterStatusAsync(string token, CancellationToken ct);
+
+    Task VincularPessoaAsync(string token,Guid pessoaId,CancellationToken ct);
 }

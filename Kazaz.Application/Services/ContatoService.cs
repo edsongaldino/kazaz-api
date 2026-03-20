@@ -2,6 +2,7 @@
 using Kazaz.Application.Interfaces;
 using Kazaz.Domain.Entities;
 using Kazaz.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,26 +20,26 @@ public class ContatoService : IContatoService
 		_context = context;
 	}
 
-	public async Task CriarVariosAsync(Guid pessoaId, IEnumerable<ContatoDto> contatos, CancellationToken ct)
-	{
-		if (contatos is null) return;
+    public Task CriarVariosAsync(Guid pessoaId, IEnumerable<ContatoDto> contatos, CancellationToken ct)
+    {
+        if (contatos is null) return Task.CompletedTask;
 
-		foreach (var contatoDto in contatos)
-		{
-			var contato = new Contato
-			{
-				Id = Guid.NewGuid(),
-				PessoaId = pessoaId,
-				Tipo = contatoDto.Tipo.Trim().ToUpperInvariant(),
-				Valor = contatoDto.Valor.Trim(),
-				Principal = contatoDto.Principal,
-				DataCriacao = DateTime.UtcNow
-			};
+        foreach (var contatoDto in contatos)
+        {
+            var contato = new Contato
+            {
+                Id = Guid.NewGuid(),
+                PessoaId = pessoaId,
+                Tipo = (contatoDto.Tipo ?? "").Trim().ToUpperInvariant(),
+                Valor = (contatoDto.Valor ?? "").Trim(),
+                Principal = contatoDto.Principal,
+                DataCriacao = DateTime.UtcNow
+            };
 
-			await _context.Set<Contato>().AddAsync(contato, ct);
-		}
+            _context.Set<Contato>().Add(contato);
+        }
 
-		await _context.SaveChangesAsync(ct);
-	}
+        return Task.CompletedTask; // ✅ sem SaveChanges
+    }
 }
 

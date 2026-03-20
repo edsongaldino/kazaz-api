@@ -6,13 +6,15 @@ using System.Threading.Tasks;
 
 namespace Kazaz.Domain.Entities;
 
-public sealed class DadosPessoaFisica : Pessoa
+public sealed class DadosPessoaFisica
 {
+    public Guid PessoaId { get; set; }
+    public Pessoa Pessoa { get; set; } = null!;
+    public string Nome { get; set; } = default!;
     public string Cpf { get; set; } = default!;
     public string Rg { get; set; } = default!;
     public string OrgaoExpedidor { get; set; } = default!;
     public DateOnly? DataNascimento { get; set; }
-    public Pessoa Pessoa { get; set; } = null!;
     public EstadoCivil EstadoCivil { get; set; } = EstadoCivil.NaoInformado;
     public string Nacionalidade { get; set; } = default!;
 }

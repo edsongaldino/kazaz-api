@@ -6,7 +6,8 @@ public sealed class PessoaFisicaConfig : IEntityTypeConfiguration<DadosPessoaFis
 {
     public void Configure(EntityTypeBuilder<DadosPessoaFisica> b)
     {
-        b.ToTable("dados_pessoa_fisica");              // ✅ isto é o que faltava em TPT
+        b.ToTable("dados_pessoa_fisica");
+        b.HasKey(x => x.PessoaId);
 
         b.Property(x => x.Cpf)
          .HasColumnName("cpf")
@@ -33,5 +34,10 @@ public sealed class PessoaFisicaConfig : IEntityTypeConfiguration<DadosPessoaFis
          .HasColumnName("estado_civil")
          .HasConversion<int>()
          .IsRequired();
+
+
+        b.HasOne(x => x.Pessoa)
+         .WithOne(p => p.PessoaFisica) // ou Juridica
+         .HasForeignKey<DadosPessoaFisica>(x => x.PessoaId);
     }
 }

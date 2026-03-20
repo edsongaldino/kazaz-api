@@ -35,7 +35,7 @@ public class UsuarioController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Put(Guid id, [FromBody] UsuarioDto dto)
+    public async Task<IActionResult> Put(Guid id, [FromBody] UsuarioUpdateDto dto)
     {
         var atualizado = await _service.AtualizarAsync(id, dto);
         return atualizado == null ? NotFound() : Ok(atualizado);

@@ -77,7 +77,6 @@ public class CadastroPublicoService(ApplicationDbContext ctx) : ICadastroPublico
         if (convite.PessoaId is Guid pessoaId)
         {
             pessoa = await ctx.Set<Pessoa>().FirstAsync(p => p.Id == pessoaId, ct);
-            pessoa.Nome = request.Nome.Trim();
             pessoa.EnderecoId = request.EnderecoId;
         }
         else
@@ -85,7 +84,6 @@ public class CadastroPublicoService(ApplicationDbContext ctx) : ICadastroPublico
             pessoa = new Pessoa
             {
                 Id = Guid.NewGuid(),
-                Nome = request.Nome.Trim(),
                 EnderecoId = request.EnderecoId
             };
             ctx.Set<Pessoa>().Add(pessoa);
@@ -163,4 +161,53 @@ public class CadastroPublicoService(ApplicationDbContext ctx) : ICadastroPublico
             convite.Papel
         );
     }
+
+    public async Task<CadastroPublicoStatusResponse> ObterStatusAsync(string token, CancellationToken ct)
+    {
+        var convite = await ctx.Set<ConviteCadastroContrato>()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Token == token, ct)
+            ?? throw new KeyNotFoundException("Convite não encontrado.");
+
+        var iniciado = convite.PessoaId.HasValue && convite.PessoaId.Value != Guid.Empty;
+        var concluido = convite.Status == StatusConviteCadastro.Usado;
+
+        return new CadastroPublicoStatusResponse(
+            convite.ContratoId,
+            convite.PessoaId,
+            convite.Papel,
+            concluido,
+            iniciado // ✅ NOVO
+        );
+    }
+
+    public async Task VincularPessoaAsync(
+        string token,
+        Guid pessoaId,
+        CancellationToken ct)
+    {
+        var convite = await ctx.Set<ConviteCadastroContrato>()
+            .FirstOrDefaultAsync(x => x.Token == token, ct)
+            ?? throw new KeyNotFoundException("Convite não encontrado.");
+
+        // 🔒 regras de negócio
+        if (convite.Status == StatusConviteCadastro.Cancelado ||
+            convite.Status == StatusConviteCadastro.Expirado)
+        {
+            throw new InvalidOperationException("Convite não está mais válido.");
+        }
+
+        // evita sobrescrever vínculo existente
+        if (convite.PessoaId.HasValue && convite.PessoaId != pessoaId)
+        {
+            throw new InvalidOperationException("Este convite já está vinculado a outra pessoa.");
+        }
+
+        convite.PessoaId = pessoaId;
+        convite.Status = StatusConviteCadastro.Usado;
+        convite.UsadoEm = DateTime.UtcNow;
+
+        await ctx.SaveChangesAsync(ct);
+    }
+
 }

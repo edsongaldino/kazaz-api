@@ -255,7 +255,7 @@ public class ContratosService : IContratosService
             c.CriadoEm,
             c.Partes.Select(p => new ContratoParteResponse(
                 p.PessoaId,
-                p.Pessoa?.Nome ?? "",
+                p.Pessoa?.PessoaFisica?.Nome ?? p.Pessoa?.PessoaJuridica?.NomeFantasia,
                 (int)p.Papel,
                 p.Percentual
             )).ToList()

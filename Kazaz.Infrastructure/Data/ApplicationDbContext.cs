@@ -38,6 +38,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<Contrato> Contratos => Set<Contrato>();
     public DbSet<ContratoParte> ContratoPartes => Set<ContratoParte>();
 
+    public DbSet<RegraDocumentoCadastro> RegraDocumentoCadastro => Set<RegraDocumentoCadastro>();
+
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
 

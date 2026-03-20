@@ -7,6 +7,7 @@ public sealed class PessoaJuridicaConfig : IEntityTypeConfiguration<DadosPessoaJ
     public void Configure(EntityTypeBuilder<DadosPessoaJuridica> b)
     {
         b.ToTable("dados_pessoa_juridica");
+        b.HasKey(x => x.PessoaId);
 
         b.Property(x => x.Cnpj).HasColumnName("cnpj").HasMaxLength(14).IsRequired();
         b.HasIndex(x => x.Cnpj).IsUnique();
@@ -21,8 +22,7 @@ public sealed class PessoaJuridicaConfig : IEntityTypeConfiguration<DadosPessoaJ
             .IsRequired(false); // ou true se obrigatório
 
         b.HasOne(x => x.Pessoa)
-            .WithOne(p => p.PessoaJuridica)
-            .HasForeignKey<DadosPessoaJuridica>(x => x.Id)   // 👈 aqui!
-            .OnDelete(DeleteBehavior.Cascade);
+         .WithOne(p => p.PessoaJuridica) // ou Juridica
+         .HasForeignKey<DadosPessoaJuridica>(x => x.PessoaId);
     }
 }

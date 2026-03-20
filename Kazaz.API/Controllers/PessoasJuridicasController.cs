@@ -11,13 +11,6 @@ public class PessoasJuridicasController : ControllerBase
     private readonly IPessoaJuridicaService _service;
     public PessoasJuridicasController(IPessoaJuridicaService service) => _service = service;
 
-    [HttpPost]
-    public async Task<IActionResult> Criar([FromBody] DadosPessoaJuridicaDto dto, CancellationToken ct)
-    {
-        var id = await _service.CriarAsync(dto, ct);
-        return Created($"/api/pessoas/{id}", new { id });
-    }
-
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Atualizar(Guid id, [FromBody] PessoaJuridicaUpdateDto dto, CancellationToken ct)
     {

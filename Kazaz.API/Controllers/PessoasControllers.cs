@@ -3,6 +3,7 @@ using Kazaz.Application.Interfaces;
 using Kazaz.Application.Interfaces.Services;
 using Kazaz.Application.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Kazaz.API.Controllers;
 
@@ -65,6 +66,32 @@ public class PessoasController : ControllerBase
     {
         if (dto is null) return BadRequest("Payload inválido.");
 
+        if (dto.PessoaId.HasValue)
+        {
+            if (dto.PessoaId.Value == Guid.Empty)
+                return BadRequest("PessoaId inválido.");
+
+            var existente = await _pessoaService.ObterAsync(dto.PessoaId.Value, ct);
+            if (existente is null)
+                return BadRequest("Pessoa não encontrada para vínculo.");
+
+            // opcional: atualizar origem se veio
+            //if (dto.OrigemId is not null)
+                //await _pessoaService.AtualizarOrigemAsync(dto.PessoaId.Value, dto.OrigemId, ct);
+
+            // opcional: se quiser permitir incluir contatos/dados complementares/conjuge mesmo no vínculo:
+            if (dto.Contatos is not null && dto.Contatos.Any())
+                await _contatoService.CriarVariosAsync(dto.PessoaId.Value, dto.Contatos, ct);
+
+            if (dto.DadosComplementares is not null)
+                await _dadosComplementaresService.CriarOuAtualizarAsync(dto.PessoaId.Value, dto.DadosComplementares, ct);
+
+            if (dto.Conjuge is not null)
+                await _conjugeService.CriarOuAtualizarAsync(dto.PessoaId.Value, dto.Conjuge, ct);
+
+            return Created($"/api/pessoas/{dto.PessoaId.Value}", new { id = dto.PessoaId.Value });
+        }
+
         var tipo = (dto.Tipo ?? string.Empty).Trim().ToUpperInvariant();
         if (tipo != "PF" && tipo != "PJ")
             return BadRequest("Tipo deve ser 'FISICA' ou 'JURIDICA'.");
@@ -89,8 +116,30 @@ public class PessoasController : ControllerBase
         // Se seu service aceitar CancellationToken, passe 'ct'
         var endereco = await _enderecoService.CriarAsync(endReq /*, ct*/);
 
-        // 2) Cria Pessoa PF ou PJ
-        Guid pessoaId;
+        // 2) ✅ Cria PRIMEIRO a Pessoa base (linha em pessoas)
+        //    - Nome vem do bloco PF/PJ (igual você já usa)
+        string nomeBase;
+        if (tipo == "PF")
+        {
+            nomeBase = (dto.DadosPessoaFisica?.Nome ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(nomeBase))
+                return BadRequest("DadosPessoaFisica.Nome é obrigatório.");
+        }
+        else
+        {
+            // escolha a regra: geralmente PJ usa RazaoSocial como nome base
+            nomeBase = (dto.DadosPessoaJuridica?.RazaoSocial ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(nomeBase))
+                return BadRequest("DadosPessoaJuridica.RazaoSocial é obrigatório.");
+        }
+
+        var pessoaId = await _pessoaService.CriarBaseAsync(
+            nome: nomeBase,
+            enderecoId: endereco.Id,
+            origemId: dto.OrigemId,
+            ct: ct
+        );
+
         if (tipo == "PF")
         {
             var pfReq = new DadosPessoaFisicaDto(
@@ -103,7 +152,7 @@ public class PessoasController : ControllerBase
                 Nacionalidade: dto.DadosPessoaFisica.Nacionalidade
             );
 
-            pessoaId = await _pessoaFisicaService.CriarAsync(pfReq, ct);
+            await _pessoaFisicaService.CriarAsync(pessoaId,pfReq, ct);
         }
         else
         {
@@ -112,14 +161,15 @@ public class PessoasController : ControllerBase
             var pjReq = new DadosPessoaJuridicaDto(
                 NomeFantasia: (dto.DadosPessoaJuridica.NomeFantasia ?? string.Empty).Trim(),
                 RazaoSocial: (dto.DadosPessoaJuridica.RazaoSocial ?? string.Empty).Trim(),
+                DataAbertura: (dto.DadosPessoaJuridica.DataAbertura),
                 Cnpj: Limpar(dto.Documento).PadLeft(14, '0'),
                 InscricaoEstadual: dto.DadosPessoaJuridica.InscricaoEstadual
             );
 
-            pessoaId = await _pessoaJuridicaService.CriarAsync(pjReq, ct);
+            await _pessoaJuridicaService.CriarAsync(pessoaId, pjReq, ct);
         }
 
-		if (dto.Contatos is not null && dto.Contatos.Any())
+        if (dto.Contatos is not null && dto.Contatos.Any())
 		{
 			await _contatoService.CriarVariosAsync(pessoaId, dto.Contatos, ct);
 		}
@@ -215,6 +265,7 @@ public class PessoasController : ControllerBase
             var pj = new PessoaJuridicaUpdateDto(
                 RazaoSocial: dto.DadosPessoaJuridica.RazaoSocial?.Trim(),
                 NomeFantasia: dto.DadosPessoaJuridica.NomeFantasia?.Trim(),
+                DataAbertura: dto.DadosPessoaJuridica.DataAbertura,
                 Cnpj: string.IsNullOrWhiteSpace(dto.Documento) ? null : Limpar(dto.Documento).PadLeft(14, '0'),
                 InscricaoEstadual: dto.DadosPessoaJuridica.InscricaoEstadual?.Trim()
             );
@@ -224,6 +275,18 @@ public class PessoasController : ControllerBase
         await _pessoaService.AtualizarAsync(id, dto, enderecoId, ct);
 
         return NoContent();
+    }
+
+    [HttpGet("por-documento/{documento}")]
+    public async Task<IActionResult> ObterPorDocumento(string documento, CancellationToken ct)
+    {
+        var digits = Limpar(documento);
+
+        if (digits.Length != 11 && digits.Length != 14)
+            return BadRequest("Documento inválido.");
+
+        var dto = await _pessoaService.ObterPorDocumentoAsync(digits, ct);
+        return dto is null ? NotFound() : Ok(dto);
     }
 
 

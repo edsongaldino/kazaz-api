@@ -13,3 +13,4 @@ public class PagedResult<T>
     public int PageSize { get; init; }
     public long Total { get; init; }
 }
+
