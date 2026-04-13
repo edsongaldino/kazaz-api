@@ -2,6 +2,7 @@
 using Kazaz.Application.Interfaces;
 using Kazaz.Application.Interfaces.Services;
 using Kazaz.Application.Services;
+using Kazaz.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -270,6 +271,22 @@ public class PessoasController : ControllerBase
                 InscricaoEstadual: dto.DadosPessoaJuridica.InscricaoEstadual?.Trim()
             );
             await _pessoaJuridicaService.AtualizarAsync(id, pj, ct);
+        }
+
+        if (dto.Contatos is not null)
+        {
+            // ✔ Opção simples (recomendada inicialmente):
+            await _contatoService.RemoverPorPessoaAsync(id, ct);
+            await _contatoService.CriarVariosAsync(id, dto.Contatos, ct);
+        }
+
+        if (dto.DadosComplementares is not null)
+        {
+            await _dadosComplementaresService.CriarOuAtualizarAsync(
+                id,
+                dto.DadosComplementares,
+                ct
+            );
         }
 
         await _pessoaService.AtualizarAsync(id, dto, enderecoId, ct);

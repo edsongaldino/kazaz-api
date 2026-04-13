@@ -23,10 +23,13 @@ public class ContratoConviteService : IContratoConviteService
     }
 
     public async Task<GerarLinksContratoResponse> GerarLinksAsync(
-        Guid imovelId,
-        GerarLinksContratoRequest request,
-        CancellationToken ct)
+    Guid imovelId,
+    GerarLinksContratoRequest request,
+    CancellationToken ct)
     {
+        if (!PapelEhValidoParaTipo(request.Tipo, request.Papel))
+            throw new InvalidOperationException("O papel informado não é válido para o tipo de contrato.");
+
         var numero = await GerarNumeroContratoAsync(ct);
 
         var contrato = new Contrato
@@ -36,12 +39,10 @@ public class ContratoConviteService : IContratoConviteService
             Tipo = request.Tipo,
             Status = StatusContrato.Rascunho,
             Numero = numero,
-            InicioVigencia = DateOnly.FromDateTime(DateTime.UtcNow) // rascunho
+            InicioVigencia = DateOnly.FromDateTime(DateTime.UtcNow)
         };
 
         _db.Contratos.Add(contrato);
-
-        var papeis = ObterPapeisContrato(request.Tipo, request.IncluirFiador);
 
         var baseUrl = _configuration["PublicUrls:CadastroBaseUrl"];
 
@@ -51,38 +52,43 @@ public class ContratoConviteService : IContratoConviteService
         baseUrl = baseUrl.TrimEnd('/');
 
         var expiraEm = DateTime.UtcNow.AddDays(Math.Max(1, request.ExpiraEmDias));
+        var token = GerarTokenSeguro(48);
 
-        var links = new List<ConviteLinkResponse>();
-
-        foreach (var papel in papeis)
+        var convite = new ConviteCadastroContrato
         {
-            var token = GerarTokenSeguro(48);
+            Id = Guid.NewGuid(),
+            ContratoId = contrato.Id,
+            Papel = request.Papel,
+            Token = token,
+            ExpiraEm = expiraEm
+        };
 
-            var convite = new ConviteCadastroContrato
-            {
-                Id = Guid.NewGuid(),
-                ContratoId = contrato.Id,
-                Papel = papel,
-                Token = token,
-                ExpiraEm = expiraEm
-            };
-
-            _db.Set<ConviteCadastroContrato>().Add(convite);
-
-            links.Add(new ConviteLinkResponse(
-                papel,
-                token,
-                $"{baseUrl}/{token}"
-            ));
-        }
+        _db.Set<ConviteCadastroContrato>().Add(convite);
 
         await _db.SaveChangesAsync(ct);
 
         return new GerarLinksContratoResponse(
             contrato.Id,
             contrato.Numero,
-            links
+            new List<ConviteLinkResponse>
+            {
+            new ConviteLinkResponse(
+                request.Papel,
+                token,
+                $"{baseUrl}/{token}"
+            )
+            }
         );
+    }
+
+    private static bool PapelEhValidoParaTipo(TipoContrato tipo, PapelContrato papel)
+    {
+        return tipo switch
+        {
+            TipoContrato.Locacao => papel is PapelContrato.Locatario or PapelContrato.Fiador,
+            TipoContrato.Venda => papel is PapelContrato.Comprador or PapelContrato.Vendedor,
+            _ => false
+        };
     }
 
     // ============================
@@ -143,6 +149,9 @@ public class ContratoConviteService : IContratoConviteService
 
         if (q.ContratoId.HasValue)
             query = query.Where(x => x.ContratoId == q.ContratoId.Value);
+
+        if (q.ImovelId.HasValue)
+            query = query.Where(x => x.Contrato.ImovelId == q.ImovelId.Value);
 
         if (q.Status.HasValue)
             query = query.Where(x => x.Status == q.Status.Value);

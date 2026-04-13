@@ -39,6 +39,7 @@ public class CadastroPublicoController : ControllerBase
     [HttpGet("convites-cadastro-contrato")]
     public async Task<ActionResult<PagedResult<ConviteCadastroListItemResponse>>> Listar(
         [FromQuery] Guid? contratoId,
+        [FromQuery] Guid? imovelId,
         [FromQuery] StatusConviteCadastro? status,
         [FromQuery] PapelContrato? papel,
         [FromQuery] int page = 1,
@@ -46,7 +47,7 @@ public class CadastroPublicoController : ControllerBase
         CancellationToken ct = default)
     {
         var result = await _serviceConvite.ListarAsync(
-            new ListarConvitesCadastroQuery(contratoId, status, papel, page, pageSize),
+            new ListarConvitesCadastroQuery(contratoId, imovelId, status, papel, page, pageSize),
             ct
         );
 
@@ -64,6 +65,15 @@ public class CadastroPublicoController : ControllerBase
 
         await _service.VincularPessoaAsync(token, request.PessoaId, ct);
         return NoContent();
+    }
+
+    [HttpGet("{token}/detalhes")]
+    public async Task<ActionResult<CadastroPublicoDetalhesResponse>> ObterDetalhes(
+    string token,
+    CancellationToken ct)
+    {
+        var result = await _service.ObterDetalhesAsync(token, ct);
+        return Ok(result);
     }
 
 }

@@ -31,6 +31,7 @@ public record DocumentoCreateDto(
     AlvoDocumento Alvo,
     Guid AlvoId,                // PessoaId OU ImovelId
     Guid TipoDocumentoId,       // ex.: RG, CPF, Comprovante de Endereço, Matrícula do imóvel...
+    Guid ContratoId,
     string? Observacao = null
 );
 

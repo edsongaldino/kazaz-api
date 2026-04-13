@@ -26,7 +26,8 @@ public sealed class PessoaDocumentoConfig : IEntityTypeConfiguration<PessoaDocum
             .HasForeignKey(x => x.DocumentoId).OnDelete(DeleteBehavior.Cascade);
 
         // Pessoa não pode ter duas vezes o MESMO tipo
-        b.HasIndex(x => new { x.PessoaId, x.TipoDocumentoId }).IsUnique()
-         .HasDatabaseName("UX_pessoas_documentos_unique");
+        b.HasIndex(x => new { x.PessoaId, x.ContratoId, x.TipoDocumentoId })
+            .IsUnique()
+            .HasDatabaseName("UX_pessoas_documentos_unique");
     }
 }

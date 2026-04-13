@@ -1,5 +1,4 @@
 using Kazaz.Application;
-using Kazaz.Application.Interfaces;
 using Kazaz.Application.Interfaces.Storage;
 using Kazaz.Application.Services;
 using Kazaz.Domain.Interfaces;
@@ -15,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -122,6 +122,21 @@ app.UseSwaggerUI(c =>
 
 
 app.UseHttpsRedirection();
+
+var storagePath = builder.Configuration["Storage:LocalPath"]
+    ?? throw new InvalidOperationException("Storage:LocalPath não configurado.");
+
+if (!Directory.Exists(storagePath))
+{
+    Directory.CreateDirectory(storagePath);
+}
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(storagePath),
+    RequestPath = "/files"
+});
+
 app.UseCors(allowedOrigins);
 app.UseAuthentication();
 app.UseAuthorization();

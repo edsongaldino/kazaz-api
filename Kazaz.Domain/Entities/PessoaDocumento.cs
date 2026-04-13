@@ -10,6 +10,7 @@ public class PessoaDocumento
 {
     public Guid Id { get; set; }
     public Guid PessoaId { get; set; }
+    public Guid ContratoId { get; set; }
     public Guid TipoDocumentoId { get; set; }
     public Guid DocumentoId { get; set; }
     public DateTime DataAnexo { get; set; } = DateTime.UtcNow;

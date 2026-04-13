@@ -141,6 +141,7 @@ public class DocumentoService(ApplicationDbContext ctx, IFileStorage storage) : 
             {
                 Id = Guid.NewGuid(),
                 PessoaId = dto.AlvoId,
+                ContratoId = dto.ContratoId,
                 TipoDocumentoId = dto.TipoDocumentoId,
                 DocumentoId = doc.Id,
                 Observacao = dto.Observacao

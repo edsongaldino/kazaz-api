@@ -10,4 +10,5 @@ namespace Kazaz.Application.Interfaces;
 public interface IContatoService
 {
 	Task CriarVariosAsync(Guid pessoaId, IEnumerable<ContatoDto> contatos, CancellationToken ct);
+    Task RemoverPorPessoaAsync(Guid pessoaId, CancellationToken ct);
 }

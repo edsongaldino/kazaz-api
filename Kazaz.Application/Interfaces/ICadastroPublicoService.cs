@@ -21,4 +21,6 @@ public interface ICadastroPublicoService
     Task<CadastroPublicoStatusResponse> ObterStatusAsync(string token, CancellationToken ct);
 
     Task VincularPessoaAsync(string token,Guid pessoaId,CancellationToken ct);
+
+    Task<CadastroPublicoDetalhesResponse> ObterDetalhesAsync(string token, CancellationToken ct);
 }

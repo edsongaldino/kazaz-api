@@ -112,15 +112,18 @@ public class ImovelService : IImovelService
                 Status: c.Status,
                 InicioVigencia: c.InicioVigencia,
                 FimVigencia: c.FimVigencia,
-                Partes: c.Partes
+                Partes: c.Partes?
                     .OrderBy(p => p.Papel)
                     .Select(p => new ImovelContratoParteDto(
                         PessoaId: p.PessoaId,
-                        PessoaNome: p.Pessoa.PessoaFisica.Nome ?? p.Pessoa.PessoaJuridica.NomeFantasia,
+                        PessoaNome: p.Pessoa?.PessoaFisica?.Nome
+                                    ?? p.Pessoa?.PessoaJuridica?.NomeFantasia
+                                    ?? string.Empty,
                         Papel: p.Papel,
                         Percentual: p.Percentual
                     ))
                     .ToList()
+                    ?? new List<ImovelContratoParteDto>()
             ))
             .ToList();
 

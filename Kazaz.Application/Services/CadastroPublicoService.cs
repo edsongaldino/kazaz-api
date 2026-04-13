@@ -204,10 +204,138 @@ public class CadastroPublicoService(ApplicationDbContext ctx) : ICadastroPublico
         }
 
         convite.PessoaId = pessoaId;
-        convite.Status = StatusConviteCadastro.Usado;
-        convite.UsadoEm = DateTime.UtcNow;
+        //convite.Status = StatusConviteCadastro.Usado;
+        //convite.UsadoEm = DateTime.UtcNow;
 
         await ctx.SaveChangesAsync(ct);
+    }
+
+    public async Task<CadastroPublicoDetalhesResponse> ObterDetalhesAsync(string token, CancellationToken ct)
+    {
+        token = (token ?? "").Trim();
+        if (string.IsNullOrWhiteSpace(token))
+            throw new InvalidOperationException("Token inválido.");
+
+        var convite = await ctx.Set<ConviteCadastroContrato>()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Token == token, ct)
+            ?? throw new KeyNotFoundException("Convite não encontrado.");
+
+        if (convite.PessoaId is null || convite.PessoaId == Guid.Empty)
+            return new CadastroPublicoDetalhesResponse(null, []);
+
+        var pessoa = await ctx.Set<Pessoa>()
+            .AsNoTracking()
+            .Include(x => x.Endereco)
+            .Include(x => x.PessoaFisica)
+            .Include(x => x.PessoaJuridica)
+            .Include(x => x.DadosComplementares)
+            .Include(x => x.Conjuge)
+            .Include(x => x.Contatos)
+            .FirstOrDefaultAsync(x => x.Id == convite.PessoaId.Value, ct);
+
+        PessoaDetailsDto? pessoaDto = null;
+
+        if (pessoa is not null)
+        {
+            var isPf = pessoa.PessoaFisica is not null;
+            var isPj = pessoa.PessoaJuridica is not null;
+
+            if (isPf || isPj)
+            {
+                var nome = isPf
+                    ? pessoa.PessoaFisica!.Nome
+                    : (pessoa.PessoaJuridica!.NomeFantasia ?? pessoa.PessoaJuridica!.RazaoSocial);
+
+                var documento = isPf
+                    ? pessoa.PessoaFisica!.Cpf
+                    : pessoa.PessoaJuridica!.Cnpj;
+
+                pessoaDto = new PessoaDetailsDto(
+                    Id: pessoa.Id,
+                    TipoPessoa: isPf ? "PF" : "PJ",
+                    Nome: nome,
+                    Documento: documento,
+                    OrigemId: pessoa.OrigemId,
+
+                    Endereco: pessoa.Endereco is null ? null : new EnderecoResponseDto
+                    {
+                        Id = pessoa.Endereco.Id,
+                        Cep = pessoa.Endereco.Cep,
+                        Logradouro = pessoa.Endereco.Logradouro,
+                        Numero = pessoa.Endereco.Numero,
+                        Complemento = pessoa.Endereco.Complemento,
+                        Bairro = pessoa.Endereco.Bairro,
+                        CidadeId = pessoa.Endereco.CidadeId
+                    },
+
+                    DadosPessoaFisica: pessoa.PessoaFisica is null ? null : new DadosPessoaFisicaDto(
+                        Nome: pessoa.PessoaFisica.Nome,
+                        Cpf: pessoa.PessoaFisica.Cpf,
+                        DataNascimento: pessoa.PessoaFisica.DataNascimento,
+                        Rg: pessoa.PessoaFisica.Rg,
+                        OrgaoExpedidor: pessoa.PessoaFisica.OrgaoExpedidor,
+                        Nacionalidade: pessoa.PessoaFisica.Nacionalidade,
+                        EstadoCivil: pessoa.PessoaFisica.EstadoCivil
+                    ),
+
+                    DadosPessoaJuridica: pessoa.PessoaJuridica is null ? null : new DadosPessoaJuridicaDto(
+                        RazaoSocial: pessoa.PessoaJuridica.RazaoSocial,
+                        NomeFantasia: pessoa.PessoaJuridica.NomeFantasia,
+                        Cnpj: pessoa.PessoaJuridica.Cnpj,
+                        DataAbertura: pessoa.PessoaJuridica.DataAbertura,
+                        InscricaoEstadual: pessoa.PessoaJuridica.InscricaoEstadual
+                    ),
+
+                    Contatos: (pessoa.Contatos ?? Enumerable.Empty<Contato>())
+                        .OrderByDescending(c => c.Principal)
+                        .ThenBy(c => c.Tipo)
+                        .Select(c => new ContatoDto(
+                            Tipo: c.Tipo,
+                            Valor: c.Valor,
+                            Principal: c.Principal
+                        ))
+                        .ToList(),
+
+                    DadosComplementares: pessoa.DadosComplementares is null ? null : new DadosComplementaresDto(
+                        Profissao: pessoa.DadosComplementares.Profissao,
+                        Escolaridade: pessoa.DadosComplementares.Escolaridade,
+                        RendaMensal: pessoa.DadosComplementares.RendaMensal,
+                        Observacoes: pessoa.DadosComplementares.Observacoes
+                    ),
+
+                    Conjuge: pessoa.Conjuge is null ? null : new ConjugeDto(
+                        Id: pessoa.Conjuge.Id,
+                        Nome: pessoa.Conjuge.Nome,
+                        Cpf: pessoa.Conjuge.Cpf,
+                        Rg: pessoa.Conjuge.Rg,
+                        OrgaoExpedidor: pessoa.Conjuge.OrgaoExpedidor,
+                        DataNascimento: pessoa.Conjuge.DataNascimento,
+                        Telefone: pessoa.Conjuge.Telefone,
+                        Email: pessoa.Conjuge.Email
+                    )
+                );
+            }
+        }
+
+        var documentos = await (
+            from pd in ctx.Set<PessoaDocumento>().AsNoTracking()
+            join d in ctx.Set<Documento>().AsNoTracking() on pd.DocumentoId equals d.Id
+            join td in ctx.Set<TipoDocumento>().AsNoTracking() on pd.TipoDocumentoId equals td.Id
+            where pd.PessoaId == convite.PessoaId.Value
+               && pd.ContratoId == convite.ContratoId
+            orderby td.Nome, d.Nome
+            select new DocumentoVisualizacaoDto(
+                d.Id,
+                td.Id,
+                td.Nome,
+                d.Nome,
+                d.Caminho,
+                d.ContentType
+            )
+        ).ToListAsync(ct);
+
+        return new CadastroPublicoDetalhesResponse(pessoaDto, documentos);
     }
 
 }

@@ -2,8 +2,8 @@
 
 public record GerarLinksContratoRequest(
     TipoContrato Tipo,
-    int ExpiraEmDias = 7,
-    bool IncluirFiador = false
+    PapelContrato Papel,
+    int ExpiraEmDias
 );
 
 public record ConviteLinkResponse(
@@ -57,6 +57,7 @@ public record ConviteCadastroListItemResponse(
 
 public record ListarConvitesCadastroQuery(
     Guid? ContratoId = null,
+    Guid? ImovelId = null,
     StatusConviteCadastro? Status = null,
     PapelContrato? Papel = null,
     int Page = 1,

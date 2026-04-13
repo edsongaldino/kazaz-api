@@ -91,7 +91,21 @@ public sealed record PessoaUpdateDto(
     EnderecoUpdateDto? Endereco,
     PessoaFisicaUpdateDto? DadosPessoaFisica,
     PessoaJuridicaUpdateDto? DadosPessoaJuridica,
-    List<ContatoUpdateDto>? Contatos,
-    DadosComplementaresUpdateDto? DadosComplementares,
+    List<ContatoDto>? Contatos,
+    DadosComplementaresDto? DadosComplementares,
     ConjugeUpdateDto? Conjuge
+);
+
+public record CadastroPublicoDetalhesResponse(
+    PessoaDetailsDto? Pessoa,
+    IReadOnlyList<DocumentoVisualizacaoDto> Documentos
+);
+
+public record DocumentoVisualizacaoDto(
+    Guid Id,
+    Guid TipoDocumentoId,
+    string TipoDocumentoNome,
+    string Nome,
+    string Caminho,
+    string? ContentType
 );

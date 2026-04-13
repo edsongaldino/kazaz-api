@@ -41,5 +41,12 @@ public class ContatoService : IContatoService
 
         return Task.CompletedTask; // ✅ sem SaveChanges
     }
+
+    public async Task RemoverPorPessoaAsync(Guid pessoaId, CancellationToken ct)
+    {
+        await _context.Set<Contato>()
+            .Where(c => c.PessoaId == pessoaId)
+            .ExecuteDeleteAsync(ct);
+    }
 }
 
