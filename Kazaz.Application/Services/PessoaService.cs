@@ -3,36 +3,45 @@ using Kazaz.Application.Interfaces;
 using Kazaz.Domain.Entities;
 using Kazaz.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace Kazaz.Application.Services;
 
 public class PessoaService(ApplicationDbContext ctx) : IPessoaService
 {
     public async Task<(IReadOnlyList<PessoaListDto> Items, int Total)> ListarAsync(
-    int page, int pageSize, string? termo, CancellationToken ct)
+    PessoaFiltroDto filtro,
+    CancellationToken ct)
     {
-        page = Math.Max(1, page);
-        pageSize = Math.Max(1, pageSize);
+        var page = Math.Max(1, filtro.Page);
+        var pageSize = Math.Max(1, filtro.PageSize);
 
-        var t = (termo ?? string.Empty).Trim();
-        var digits = new string(t.Where(char.IsDigit).ToArray());
+        var nome = (filtro.Nome ?? string.Empty).Trim();
+        var documento = (filtro.Documento ?? string.Empty).Trim();
+        var digits = new string(documento.Where(char.IsDigit).ToArray());
 
+        // =====================
         // PF
+        // =====================
         var pfQ = ctx.Set<DadosPessoaFisica>().AsNoTracking();
 
-        if (!string.IsNullOrEmpty(t))
+        if (!string.IsNullOrEmpty(nome))
         {
             pfQ = pfQ.Where(p =>
-                EF.Functions.ILike(p.Nome, $"%{t}%") ||
-                (!string.IsNullOrEmpty(digits) && EF.Functions.ILike(p.Cpf, $"%{digits}%"))
-            );
+                EF.Functions.ILike(p.Nome, $"%{nome}%"));
+        }
+
+        if (!string.IsNullOrEmpty(digits))
+        {
+            pfQ = pfQ.Where(p =>
+                EF.Functions.ILike(p.Cpf, $"%{digits}%"));
         }
 
         var pfProj = pfQ.Select(p => new
         {
             p.PessoaId,
             Nome = p.Nome,
-            Tipo = "FISICA",
+            Tipo = "FISICA", // Fisica
             Documento = p.Cpf,
             Nascimento = (DateOnly?)p.DataNascimento,
             RazaoSocial = (string?)null,
@@ -51,26 +60,32 @@ public class PessoaService(ApplicationDbContext ctx) : IPessoaService
             EhComprador = p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Comprador)
         });
 
+        // =====================
         // PJ
+        // =====================
         var pjQ = ctx.Set<DadosPessoaJuridica>().AsNoTracking();
 
-        if (!string.IsNullOrEmpty(t))
+        if (!string.IsNullOrEmpty(nome))
         {
             pjQ = pjQ.Where(p =>
-                EF.Functions.ILike(p.NomeFantasia, $"%{t}%") ||
-                EF.Functions.ILike(p.RazaoSocial, $"%{t}%") ||
-                (!string.IsNullOrEmpty(digits) && EF.Functions.ILike(p.Cnpj, $"%{digits}%"))
-            );
+                EF.Functions.ILike(p.NomeFantasia, $"%{nome}%") ||
+                EF.Functions.ILike(p.RazaoSocial, $"%{nome}%"));
+        }
+
+        if (!string.IsNullOrEmpty(digits))
+        {
+            pjQ = pjQ.Where(p =>
+                EF.Functions.ILike(p.Cnpj, $"%{digits}%"));
         }
 
         var pjProj = pjQ.Select(p => new
         {
             p.PessoaId,
             Nome = p.NomeFantasia,
-            Tipo = "JURIDICA",
+            Tipo = "JURIDICA", // Juridica
             Documento = p.Cnpj,
             Nascimento = (DateOnly?)null,
-            RazaoSocial = (string?)p.RazaoSocial,
+            RazaoSocial = p.RazaoSocial,
             EnderecoId = p.Pessoa.EnderecoId,
             OrigemId = p.Pessoa.OrigemId,
 
@@ -88,11 +103,34 @@ public class PessoaService(ApplicationDbContext ctx) : IPessoaService
 
         var unionQ = pfProj.Concat(pjProj);
 
+        // =====================
+        // FILTRO TIPO
+        // =====================
+        if (!string.IsNullOrWhiteSpace(filtro.Tipo))
+        {
+            var tipoCadastro = filtro.Tipo.Trim().ToUpper();
+
+            unionQ = unionQ.Where(x => x.Tipo == tipoCadastro);
+        }
+
+        // =====================
+        // FILTRO PAPEL
+        // =====================
+        if (filtro.Papel.HasValue)
+        {
+            unionQ = unionQ.Where(x =>
+                (filtro.Papel == (int)PapelContrato.Locador && x.EhLocador) ||
+                (filtro.Papel == (int)PapelContrato.Locatario && x.EhLocatario) ||
+                (filtro.Papel == (int)PapelContrato.Fiador && x.EhFiador) ||
+                (filtro.Papel == (int)PapelContrato.Vendedor && x.EhVendedor) ||
+                (filtro.Papel == (int)PapelContrato.Comprador && x.EhComprador)
+            );
+        }
+
         var total = await unionQ.CountAsync(ct);
 
         var items = await unionQ
             .OrderBy(x => x.Nome)
-            .ThenBy(x => x.Tipo)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(x => new PessoaListDto(

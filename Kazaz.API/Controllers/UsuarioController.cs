@@ -17,7 +17,20 @@ public class UsuarioController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> Get() => Ok(await _service.ObterTodosAsync());
+    public async Task<IActionResult> Get(
+    [FromQuery] UsuarioFiltroDto filtro,
+    CancellationToken ct)
+    {
+        var (items, total) = await _service.ListarAsync(filtro, ct);
+
+        return Ok(new
+        {
+            page = filtro.Page,
+            pageSize = filtro.PageSize,
+            total,
+            items
+        });
+    }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)

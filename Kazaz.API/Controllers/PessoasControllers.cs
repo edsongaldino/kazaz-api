@@ -42,13 +42,18 @@ public class PessoasController : ControllerBase
 
     [HttpGet]
     public async Task<IActionResult> Listar(
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 10,
-        [FromQuery] string? termo = null,
-        CancellationToken ct = default)
+    [FromQuery] PessoaFiltroDto filtro,
+    CancellationToken ct = default)
     {
-        var (items, total) = await _pessoaService.ListarAsync(page, pageSize, termo, ct);
-        return Ok(new { page, pageSize, total, items });
+        var (items, total) = await _pessoaService.ListarAsync(filtro, ct);
+
+        return Ok(new
+        {
+            page = filtro.Page,
+            pageSize = filtro.PageSize,
+            total,
+            items
+        });
     }
 
     [HttpGet("{id:guid}")]

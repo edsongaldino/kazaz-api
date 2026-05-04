@@ -37,3 +37,13 @@ public class UsuarioUpdateDto
 }
 
 public record UsuarioResetSenhaDto(string NovaSenha);
+
+public class UsuarioFiltroDto
+{
+    public int Page { get; set; } = 1;
+    public int PageSize { get; set; } = 10;
+
+    public string? Termo { get; set; }
+    public Guid? PerfilId { get; set; }
+    public bool? Ativo { get; set; }
+}

@@ -116,3 +116,15 @@ public record DocumentoVisualizacaoDto(
     string Caminho,
     string? ContentType
 );
+
+public class PessoaFiltroDto
+{
+    public int Page { get; set; } = 1;
+    public int PageSize { get; set; } = 10;
+
+    public string? Nome { get; set; }
+    public string? Documento { get; set; }
+
+    public string? Tipo { get; set; } // 1 = Fisica, 2 = Juridica
+    public int? Papel { get; set; } // enum PapelContrato
+}

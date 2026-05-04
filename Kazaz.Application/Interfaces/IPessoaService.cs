@@ -9,10 +9,8 @@ namespace Kazaz.Application.Interfaces
     public interface IPessoaService
     {
         Task<(IReadOnlyList<PessoaListDto> Items, int Total)> ListarAsync(
-            int page,
-            int pageSize,
-            string? termo,
-            CancellationToken ct = default);
+        PessoaFiltroDto filtro,
+        CancellationToken ct);
 
         Task<PessoaDetailsDto?> ObterAsync(Guid id, CancellationToken ct = default);
 
