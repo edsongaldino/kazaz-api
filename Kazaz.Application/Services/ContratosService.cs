@@ -5,6 +5,7 @@ using Kazaz.Domain.Entities;
 using Kazaz.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Linq;
 
 namespace Kazaz.Application.Services;
 
@@ -152,27 +153,94 @@ public class ContratosService : IContratosService
         return Map(contrato);
     }
 
-    public async Task<List<ContratoResponse>> ListarAsync(
-        Guid? imovelId,
-        TipoContrato? tipo,
-        StatusContrato? status,
-        CancellationToken ct)
+    public async Task<PagedResult<ContratoResponse>> ListarAsync(
+    ListarContratosQuery query,
+    CancellationToken ct)
     {
+        var page = query.Page <= 0 ? 1 : query.Page;
+        var pageSize = query.PageSize <= 0 ? 50 : Math.Min(query.PageSize, 200);
+
         var q = _db.Contratos
             .AsNoTracking()
-            .Include(x => x.Partes).ThenInclude(p => p.Pessoa)
+            .Include(x => x.Imovel)
+                .ThenInclude(i => i.TipoImovel)
+            .Include(x => x.Partes)
+                .ThenInclude(p => p.Pessoa)
+                    .ThenInclude(p => p.PessoaFisica)
+            .Include(x => x.Partes)
+                .ThenInclude(p => p.Pessoa)
+                    .ThenInclude(p => p.PessoaJuridica)
+            .Where(x => x.Status != StatusContrato.Rascunho)
             .AsQueryable();
 
-        if (imovelId.HasValue) q = q.Where(x => x.ImovelId == imovelId.Value);
-        if (tipo.HasValue) q = q.Where(x => x.Tipo == tipo.Value);
-        if (status.HasValue) q = q.Where(x => x.Status == status.Value);
+        if (query.ImovelId.HasValue)
+            q = q.Where(x => x.ImovelId == query.ImovelId.Value);
+
+        if (query.TipoImovelId.HasValue)
+            q = q.Where(x => x.Imovel.TipoImovelId == query.TipoImovelId.Value);
+
+        if (query.Tipo.HasValue)
+            q = q.Where(x => x.Tipo == query.Tipo.Value);
+
+        if (query.Status.HasValue)
+            q = q.Where(x => x.Status == query.Status.Value);
+
+        if (!string.IsNullOrWhiteSpace(query.Contrato))
+        {
+            var contrato = query.Contrato.Trim();
+            q = q.Where(x => EF.Functions.ILike(x.Numero, $"%{contrato}%"));
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Imovel))
+        {
+            var imovel = query.Imovel.Trim();
+
+            q = q.Where(x =>
+                EF.Functions.ILike(x.Imovel.Codigo, $"%{imovel}%") ||
+                EF.Functions.ILike(x.Imovel.Titulo, $"%{imovel}%"));
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.DocumentoParte))
+        {
+            var documento = new string(query.DocumentoParte.Where(char.IsDigit).ToArray());
+
+            if (!string.IsNullOrWhiteSpace(documento))
+            {
+                q = q.Where(x => x.Partes.Any(p =>
+                    (
+                        p.Pessoa.PessoaFisica != null &&
+                        EF.Functions.ILike(p.Pessoa.PessoaFisica.Cpf, $"%{documento}%")
+                    )
+                    ||
+                    (
+                        p.Pessoa.PessoaJuridica != null &&
+                        EF.Functions.ILike(p.Pessoa.PessoaJuridica.Cnpj, $"%{documento}%")
+                    )
+                ));
+            }
+        }
+
+        if (query.VigenciaDe.HasValue)
+            q = q.Where(x => x.InicioVigencia >= query.VigenciaDe.Value);
+
+        if (query.VigenciaAte.HasValue)
+            q = q.Where(x => x.InicioVigencia <= query.VigenciaAte.Value);
+
+        var total = await q.LongCountAsync(ct);
 
         var list = await q
             .OrderByDescending(x => x.CriadoEm)
-            .Take(200)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync(ct);
 
-        return list.Select(Map).ToList();
+        return new PagedResult<ContratoResponse>
+        {
+            Items = list.Select(Map).ToList(),
+            Page = page,
+            PageSize = pageSize,
+            Total = total
+        };
     }
 
     // ===========================
@@ -250,12 +318,21 @@ public class ContratosService : IContratosService
             (int)c.Tipo,
             (int)c.Status,
             c.ImovelId,
+            c.Imovel?.Codigo,
+            c.Imovel?.Titulo,
+            c.Imovel?.TipoImovel?.Nome,
             c.InicioVigencia,
             c.FimVigencia,
             c.CriadoEm,
             c.Partes.Select(p => new ContratoParteResponse(
                 p.PessoaId,
-                p.Pessoa?.PessoaFisica?.Nome ?? p.Pessoa?.PessoaJuridica?.NomeFantasia,
+                p.Pessoa != null
+                    ? p.Pessoa.PessoaFisica != null
+                        ? p.Pessoa.PessoaFisica.Nome
+                        : p.Pessoa.PessoaJuridica != null
+                            ? p.Pessoa.PessoaJuridica.RazaoSocial
+                            : "-"
+                    : "-",
                 (int)p.Papel,
                 p.Percentual
             )).ToList()

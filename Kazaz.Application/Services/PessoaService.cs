@@ -9,7 +9,7 @@ namespace Kazaz.Application.Services;
 public class PessoaService(ApplicationDbContext ctx) : IPessoaService
 {
     public async Task<(IReadOnlyList<PessoaListDto> Items, int Total)> ListarAsync(
-        int page, int pageSize, string? termo, CancellationToken ct)
+    int page, int pageSize, string? termo, CancellationToken ct)
     {
         page = Math.Max(1, page);
         pageSize = Math.Max(1, pageSize);
@@ -19,6 +19,7 @@ public class PessoaService(ApplicationDbContext ctx) : IPessoaService
 
         // PF
         var pfQ = ctx.Set<DadosPessoaFisica>().AsNoTracking();
+
         if (!string.IsNullOrEmpty(t))
         {
             pfQ = pfQ.Where(p =>
@@ -26,6 +27,7 @@ public class PessoaService(ApplicationDbContext ctx) : IPessoaService
                 (!string.IsNullOrEmpty(digits) && EF.Functions.ILike(p.Cpf, $"%{digits}%"))
             );
         }
+
         var pfProj = pfQ.Select(p => new
         {
             p.PessoaId,
@@ -35,11 +37,23 @@ public class PessoaService(ApplicationDbContext ctx) : IPessoaService
             Nascimento = (DateOnly?)p.DataNascimento,
             RazaoSocial = (string?)null,
             EnderecoId = p.Pessoa.EnderecoId,
-            OrigemId = p.Pessoa.OrigemId
+            OrigemId = p.Pessoa.OrigemId,
+
+            QuantidadeContratos = p.Pessoa.Contratos
+                .Select(c => c.ContratoId)
+                .Distinct()
+                .Count(),
+
+            EhLocador = p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Locador),
+            EhLocatario = p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Locatario),
+            EhFiador = p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Fiador),
+            EhVendedor = p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Vendedor),
+            EhComprador = p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Comprador)
         });
 
         // PJ
         var pjQ = ctx.Set<DadosPessoaJuridica>().AsNoTracking();
+
         if (!string.IsNullOrEmpty(t))
         {
             pjQ = pjQ.Where(p =>
@@ -48,6 +62,7 @@ public class PessoaService(ApplicationDbContext ctx) : IPessoaService
                 (!string.IsNullOrEmpty(digits) && EF.Functions.ILike(p.Cnpj, $"%{digits}%"))
             );
         }
+
         var pjProj = pjQ.Select(p => new
         {
             p.PessoaId,
@@ -57,21 +72,45 @@ public class PessoaService(ApplicationDbContext ctx) : IPessoaService
             Nascimento = (DateOnly?)null,
             RazaoSocial = (string?)p.RazaoSocial,
             EnderecoId = p.Pessoa.EnderecoId,
-            OrigemId = p.Pessoa.OrigemId
+            OrigemId = p.Pessoa.OrigemId,
+
+            QuantidadeContratos = p.Pessoa.Contratos
+                .Select(c => c.ContratoId)
+                .Distinct()
+                .Count(),
+
+            EhLocador = p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Locador),
+            EhLocatario = p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Locatario),
+            EhFiador = p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Fiador),
+            EhVendedor = p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Vendedor),
+            EhComprador = p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Comprador)
         });
 
-        // Union/concat no servidor
         var unionQ = pfProj.Concat(pjProj);
 
         var total = await unionQ.CountAsync(ct);
 
         var items = await unionQ
             .OrderBy(x => x.Nome)
-            .ThenBy(x => x.Tipo) // para estabilizar
+            .ThenBy(x => x.Tipo)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(x => new PessoaListDto(
-                x.PessoaId, x.Tipo, x.Nome, x.Documento, x.Nascimento, x.RazaoSocial, x.EnderecoId, x.OrigemId))
+                x.PessoaId,
+                x.Tipo,
+                x.Nome,
+                x.Documento,
+                x.Nascimento,
+                x.RazaoSocial,
+                x.EnderecoId,
+                x.OrigemId,
+                x.QuantidadeContratos,
+                x.EhLocador,
+                x.EhLocatario,
+                x.EhFiador,
+                x.EhVendedor,
+                x.EhComprador
+            ))
             .ToListAsync(ct);
 
         return (items, total);

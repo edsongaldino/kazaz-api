@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Kazaz.Domain.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -38,4 +39,10 @@ public record FinalizarCadastroPublicoResponse(
 public class VincularPessoaCadastroPublicoRequest
 {
     public Guid PessoaId { get; set; }
+}
+
+public class AnalisarConviteRequest
+{
+    public ResultadoAnaliseConvite Resultado { get; set; }
+    public string? Comentario { get; set; }
 }

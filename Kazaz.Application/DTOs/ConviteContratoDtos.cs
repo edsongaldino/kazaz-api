@@ -38,28 +38,42 @@ public record CadastroPublicoStatusResponse(
     bool Iniciado
 );
 
-
 public record ConviteCadastroListItemResponse(
     Guid Id,
     Guid ContratoId,
     string NumeroContrato,
-    TipoContrato Tipo,
+    TipoContrato TipoContrato,
+    StatusContrato StatusContrato,
+    Guid ImovelId,
+    string? NomeImovel,
     PapelContrato Papel,
     StatusConviteCadastro Status,
     string Token,
-    string Url,
+    string Link,
     DateTime CriadoEm,
     DateTime? ExpiraEm,
     DateTime? UsadoEm,
-    Guid? PessoaId
+    DateTime? PreenchidoEm,
+    Guid? PessoaId,
+    string? NomePessoa,
+    string? Documento,
+    string? UltimoComentarioAnalise
 );
 
 
-public record ListarConvitesCadastroQuery(
-    Guid? ContratoId = null,
-    Guid? ImovelId = null,
-    StatusConviteCadastro? Status = null,
-    PapelContrato? Papel = null,
-    int Page = 1,
-    int PageSize = 50
-);
+public class ListarConvitesCadastroQuery
+{
+    public Guid? ContratoId { get; set; }
+    public Guid? ImovelId { get; set; }
+    public StatusConviteCadastro? Status { get; set; }
+    public PapelContrato? Papel { get; set; }
+
+    public string? Nome { get; set; }
+    public string? Documento { get; set; }
+    public string? Imovel { get; set; }
+    public DateTime? PreenchidoDe { get; set; }
+    public DateTime? PreenchidoAte { get; set; }
+
+    public int Page { get; set; } = 1;
+    public int PageSize { get; set; } = 50;
+}

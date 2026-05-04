@@ -11,6 +11,8 @@ public interface IContratoConviteService
         CancellationToken cancellationToken
     );
 
+    Task AnalisarConviteAsync(Guid conviteId, ResultadoAnaliseConvite resultado, Guid usuarioId, string? comentario,  CancellationToken ct);
+
 
     Task<PagedResult<ConviteCadastroListItemResponse>> ListarAsync(ListarConvitesCadastroQuery query, CancellationToken ct);
 

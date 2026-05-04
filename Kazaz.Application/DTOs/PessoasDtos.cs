@@ -9,7 +9,14 @@ public record PessoaListDto(
     DateOnly? DataNascimento,   // apenas PF
     string? RazaoSocial,    // apenas PJ
     Guid? EnderecoId,
-    Guid? OrigemId
+    Guid? OrigemId,
+
+    int QuantidadeContratos,
+    bool EhLocador,
+    bool EhLocatario,
+    bool EhFiador,
+    bool EhVendedor,
+    bool EhComprador
 );
 
 // PF

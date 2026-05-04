@@ -10,9 +10,7 @@ public interface IContratosService
 
     Task<ContratoResponse> ObterPorIdAsync(Guid id, CancellationToken ct);
 
-    Task<List<ContratoResponse>> ListarAsync(
-        Guid? imovelId,
-        TipoContrato? tipo,
-        StatusContrato? status,
-        CancellationToken ct);
+    Task<PagedResult<ContratoResponse>> ListarAsync(
+     ListarContratosQuery query,
+     CancellationToken ct);
 }

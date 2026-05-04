@@ -132,19 +132,29 @@ public class ContratoConviteService : IContratoConviteService
         return $"{ano}-{next:000000}";
     }
 
-    public async Task<PagedResult<ConviteCadastroListItemResponse>> ListarAsync(ListarConvitesCadastroQuery q, CancellationToken ct)
+    public async Task<PagedResult<ConviteCadastroListItemResponse>> ListarAsync(
+    ListarConvitesCadastroQuery q,
+    CancellationToken ct)
     {
         var page = q.Page <= 0 ? 1 : q.Page;
         var pageSize = q.PageSize <= 0 ? 50 : Math.Min(q.PageSize, 200);
 
         var baseUrl = _configuration["PublicUrls:CadastroBaseUrl"];
+
         if (string.IsNullOrWhiteSpace(baseUrl))
             throw new InvalidOperationException("Config ausente: PublicUrls:CadastroBaseUrl");
+
         baseUrl = baseUrl.TrimEnd('/');
 
         var query = _db.Set<ConviteCadastroContrato>()
             .AsNoTracking()
             .Include(x => x.Contrato)
+                .ThenInclude(x => x.Imovel)
+            .Include(x => x.Pessoa)
+                .ThenInclude(p => p!.PessoaFisica)
+            .Include(x => x.Pessoa)
+                .ThenInclude(p => p!.PessoaJuridica)
+            .Include(x => x.Analises)
             .AsQueryable();
 
         if (q.ContratoId.HasValue)
@@ -159,6 +169,65 @@ public class ContratoConviteService : IContratoConviteService
         if (q.Papel.HasValue)
             query = query.Where(x => x.Papel == q.Papel.Value);
 
+        if (!string.IsNullOrWhiteSpace(q.Nome))
+        {
+            var nome = q.Nome.Trim();
+
+            query = query.Where(x =>
+                x.Pessoa != null &&
+                (
+                    x.Pessoa.PessoaFisica != null &&
+                    EF.Functions.ILike(x.Pessoa.PessoaFisica.Nome, $"%{nome}%")
+                    ||
+                    x.Pessoa.PessoaJuridica != null &&
+                    (
+                        EF.Functions.ILike(x.Pessoa.PessoaJuridica.RazaoSocial, $"%{nome}%") ||
+                        EF.Functions.ILike(x.Pessoa.PessoaJuridica.NomeFantasia, $"%{nome}%")
+                    )
+                )
+            );
+        }
+
+        if (!string.IsNullOrWhiteSpace(q.Documento))
+        {
+            var documento = new string(q.Documento.Where(char.IsDigit).ToArray());
+
+            if (!string.IsNullOrWhiteSpace(documento))
+            {
+                query = query.Where(x =>
+                    x.Pessoa != null &&
+                    (
+                        x.Pessoa.PessoaFisica != null &&
+                        EF.Functions.ILike(x.Pessoa.PessoaFisica.Cpf, $"%{documento}%")
+                        ||
+                        x.Pessoa.PessoaJuridica != null &&
+                        EF.Functions.ILike(x.Pessoa.PessoaJuridica.Cnpj, $"%{documento}%")
+                    )
+                );
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(q.Imovel))
+        {
+            var termoImovel = q.Imovel.Trim();
+
+            query = query.Where(x =>
+                EF.Functions.ILike(x.Contrato.Imovel.Codigo, $"%{termoImovel}%") ||
+                EF.Functions.ILike(x.Contrato.Imovel.Titulo, $"%{termoImovel}%")
+            );
+        }
+        if (q.PreenchidoDe.HasValue)
+        {
+            var de = ToUtcDate(q.PreenchidoDe.Value);
+            query = query.Where(x => x.PreenchidoEm >= de);
+        }
+
+        if (q.PreenchidoAte.HasValue)
+        {
+            var ate = ToUtcDate(q.PreenchidoAte.Value).AddDays(1);
+            query = query.Where(x => x.PreenchidoEm < ate);
+        }
+
         var total = await query.LongCountAsync(ct);
 
         var items = await query
@@ -170,6 +239,14 @@ public class ContratoConviteService : IContratoConviteService
                 x.ContratoId,
                 x.Contrato.Numero,
                 x.Contrato.Tipo,
+                x.Contrato.Status,
+                x.Contrato.ImovelId,
+
+                // Ajuste o campo abaixo conforme sua entidade Imovel
+                x.Contrato.Imovel != null
+                    ? x.Contrato.Imovel.Titulo
+                    : null,
+
                 x.Papel,
                 x.Status,
                 x.Token,
@@ -177,7 +254,29 @@ public class ContratoConviteService : IContratoConviteService
                 x.CriadoEm,
                 x.ExpiraEm,
                 x.UsadoEm,
-                x.PessoaId
+                x.PreenchidoEm,
+                x.PessoaId,
+
+                x.Pessoa == null
+                    ? null
+                    : x.Pessoa.PessoaFisica != null
+                        ? x.Pessoa.PessoaFisica.Nome
+                        : x.Pessoa.PessoaJuridica != null
+                            ? x.Pessoa.PessoaJuridica.RazaoSocial
+                            : null,
+
+                x.Pessoa == null
+                    ? null
+                    : x.Pessoa.PessoaFisica != null
+                        ? x.Pessoa.PessoaFisica.Cpf
+                        : x.Pessoa.PessoaJuridica != null
+                            ? x.Pessoa.PessoaJuridica.Cnpj
+                            : null,
+
+                x.Analises
+                    .OrderByDescending(a => a.CriadoEm)
+                    .Select(a => a.Comentario)
+                    .FirstOrDefault()
             ))
             .ToListAsync(ct);
 
@@ -188,5 +287,62 @@ public class ContratoConviteService : IContratoConviteService
             PageSize = pageSize,
             Total = total
         };
+    }
+
+
+    public async Task AnalisarConviteAsync(
+    Guid conviteId,
+    ResultadoAnaliseConvite resultado,
+    Guid usuarioId,
+    string? comentario,
+    CancellationToken ct)
+    {
+        var convite = await _db.Set<ConviteCadastroContrato>()
+            .Include(x => x.Contrato)
+            .FirstOrDefaultAsync(x => x.Id == conviteId, ct);
+
+        if (convite is null)
+            throw new InvalidOperationException("Convite não encontrado.");
+
+        var analise = new AnaliseConvite
+        {
+            Id = Guid.NewGuid(),
+            ConviteId = convite.Id,
+            Resultado = resultado,
+            UsuarioId = usuarioId,
+            Comentario = comentario,
+            CriadoEm = DateTime.UtcNow
+        };
+
+        _db.Set<AnaliseConvite>().Add(analise);
+
+        switch (resultado)
+        {
+            case ResultadoAnaliseConvite.Aprovado:
+                convite.Status = StatusConviteCadastro.Aprovado;
+                convite.Contrato.Status = StatusContrato.Rascunho;
+                break;
+
+            case ResultadoAnaliseConvite.Reprovado:
+                convite.Status = StatusConviteCadastro.Reprovado;
+                convite.Contrato.Status = StatusContrato.Cancelado;
+                break;
+
+            case ResultadoAnaliseConvite.CorrecaoSolicitada:
+                convite.Status = StatusConviteCadastro.CorrecaoSolicitada;
+                convite.Contrato.Status = StatusContrato.Rascunho;
+                break;
+
+            default:
+                throw new InvalidOperationException("Resultado da análise inválido.");
+        }
+
+        await _db.SaveChangesAsync(ct);
+    }
+
+
+    private static DateTime ToUtcDate(DateTime value)
+    {
+        return DateTime.SpecifyKind(value.Date, DateTimeKind.Utc);
     }
 }

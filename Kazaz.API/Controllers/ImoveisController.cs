@@ -13,10 +13,19 @@ public class ImoveisController : ControllerBase
     public ImoveisController(IImovelService service) => _service = service;
 
     [HttpGet]
-    public async Task<IActionResult> Listar([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? termo = null, CancellationToken ct = default)
+    public async Task<IActionResult> Listar(
+    [FromQuery] ListarImoveisQuery query,
+    CancellationToken ct = default)
     {
-        var (items, total) = await _service.ListarAsync(page, pageSize, termo, ct);
-        return Ok(new { page, pageSize, total, items });
+        var (items, total) = await _service.ListarAsync(query, ct);
+
+        return Ok(new
+        {
+            page = query.Page,
+            pageSize = query.PageSize,
+            total,
+            items
+        });
     }
 
     [HttpGet("{id:guid}")]

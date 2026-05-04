@@ -3,6 +3,7 @@ using Kazaz.Application.DTOs;
 using Kazaz.Application.Interfaces;
 using Kazaz.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Kazaz.API.Controllers;
 
@@ -38,18 +39,10 @@ public class CadastroPublicoController : ControllerBase
 
     [HttpGet("convites-cadastro-contrato")]
     public async Task<ActionResult<PagedResult<ConviteCadastroListItemResponse>>> Listar(
-        [FromQuery] Guid? contratoId,
-        [FromQuery] Guid? imovelId,
-        [FromQuery] StatusConviteCadastro? status,
-        [FromQuery] PapelContrato? papel,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 50,
-        CancellationToken ct = default)
+    [FromQuery] ListarConvitesCadastroQuery query,
+    CancellationToken ct = default)
     {
-        var result = await _serviceConvite.ListarAsync(
-            new ListarConvitesCadastroQuery(contratoId, imovelId, status, papel, page, pageSize),
-            ct
-        );
+        var result = await _serviceConvite.ListarAsync(query, ct);
 
         return Ok(result);
     }
@@ -74,6 +67,29 @@ public class CadastroPublicoController : ControllerBase
     {
         var result = await _service.ObterDetalhesAsync(token, ct);
         return Ok(result);
+    }
+
+    [HttpPost("{conviteId:guid}/analise")]
+    public async Task<IActionResult> AnalisarConvite(
+        Guid conviteId,
+        [FromBody] AnalisarConviteRequest request,
+        CancellationToken ct)
+    {
+        var usuarioIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrWhiteSpace(usuarioIdClaim))
+            return Unauthorized("Usuário não identificado.");
+
+        var usuarioId = Guid.Parse(usuarioIdClaim);
+
+        await _serviceConvite.AnalisarConviteAsync(
+            conviteId,
+            request.Resultado,
+            usuarioId,
+            request.Comentario,
+            ct);
+
+        return NoContent();
     }
 
 }

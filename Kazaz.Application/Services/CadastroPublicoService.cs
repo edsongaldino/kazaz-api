@@ -22,7 +22,7 @@ public class CadastroPublicoService(ApplicationDbContext ctx) : ICadastroPublico
         if (convite is null)
             return new(false, "Token não encontrado.", null, null, null, null, null, null);
 
-        if (convite.Status != StatusConviteCadastro.Pendente)
+        if (convite.Status != StatusConviteCadastro.PendentePreenchimento)
             return new(false, $"Convite não está pendente ({convite.Status}).", null, null, null, null, convite.ExpiraEm, null);
 
         if (convite.ExpiraEm is not null && convite.ExpiraEm < DateTime.UtcNow)
@@ -63,7 +63,7 @@ public class CadastroPublicoService(ApplicationDbContext ctx) : ICadastroPublico
             .FirstOrDefaultAsync(x => x.Token == token, ct)
             ?? throw new KeyNotFoundException("Convite não encontrado.");
 
-        if (convite.Status != StatusConviteCadastro.Pendente)
+        if (convite.Status != StatusConviteCadastro.PendentePreenchimento)
             throw new InvalidOperationException("Convite não está pendente.");
 
         if (convite.ExpiraEm is not null && convite.ExpiraEm < DateTime.UtcNow)
@@ -134,7 +134,7 @@ public class CadastroPublicoService(ApplicationDbContext ctx) : ICadastroPublico
             .FirstOrDefaultAsync(x => x.Token == token, ct)
             ?? throw new KeyNotFoundException("Convite não encontrado.");
 
-        if (convite.Status != StatusConviteCadastro.Pendente)
+        if (convite.Status != StatusConviteCadastro.PendentePreenchimento)
             throw new InvalidOperationException("Convite não está pendente.");
 
         if (convite.ExpiraEm is not null && convite.ExpiraEm < DateTime.UtcNow)
@@ -149,7 +149,7 @@ public class CadastroPublicoService(ApplicationDbContext ctx) : ICadastroPublico
         // (Opcional agora; depois melhoramos): validar se tem docs obrigatórios antes de concluir.
         // Ex.: consultar TipoDocumento Obrigatorio e checar PessoaDocumento.
 
-        convite.Status = StatusConviteCadastro.Usado;
+        convite.Status = StatusConviteCadastro.Preenchido;
         convite.UsadoEm = DateTime.UtcNow;
 
         await ctx.SaveChangesAsync(ct);
@@ -170,7 +170,7 @@ public class CadastroPublicoService(ApplicationDbContext ctx) : ICadastroPublico
             ?? throw new KeyNotFoundException("Convite não encontrado.");
 
         var iniciado = convite.PessoaId.HasValue && convite.PessoaId.Value != Guid.Empty;
-        var concluido = convite.Status == StatusConviteCadastro.Usado;
+        var concluido = convite.Status == StatusConviteCadastro.Preenchido;
 
         return new CadastroPublicoStatusResponse(
             convite.ContratoId,

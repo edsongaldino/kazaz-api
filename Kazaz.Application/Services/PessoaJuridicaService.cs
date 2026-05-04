@@ -61,7 +61,7 @@ public class PessoaJuridicaService(ApplicationDbContext ctx) : IPessoaJuridicaSe
     }
 
     public async Task<(IReadOnlyList<PessoaListDto> Items, int Total)> ListarAsync(
-        int page, int pageSize, string? termo, CancellationToken ct)
+     int page, int pageSize, string? termo, CancellationToken ct)
     {
         page = Math.Max(1, page);
         pageSize = Math.Max(1, pageSize);
@@ -88,7 +88,24 @@ public class PessoaJuridicaService(ApplicationDbContext ctx) : IPessoaJuridicaSe
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(p => new PessoaListDto(
-                p.PessoaId, "JURIDICA", p.NomeFantasia, p.Cnpj, null, p.RazaoSocial, p.Pessoa.EnderecoId, p.Pessoa.OrigemId))
+                p.PessoaId,
+                "JURIDICA",
+                p.NomeFantasia,
+                p.Cnpj,
+                null,
+                p.RazaoSocial,
+                p.Pessoa.EnderecoId,
+                p.Pessoa.OrigemId,
+                p.Pessoa.Contratos
+                    .Select(c => c.ContratoId)
+                    .Distinct()
+                    .Count(),
+                p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Locador),
+                p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Locatario),
+                p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Fiador),
+                p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Vendedor),
+                p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Comprador)
+            ))
             .ToListAsync(ct);
 
         return (items, total);
@@ -96,10 +113,28 @@ public class PessoaJuridicaService(ApplicationDbContext ctx) : IPessoaJuridicaSe
 
     public async Task<PessoaListDto?> ObterAsync(Guid id, CancellationToken ct)
     {
-        return await ctx.Set<DadosPessoaJuridica>().AsNoTracking()
+        return await ctx.Set<DadosPessoaJuridica>()
+            .AsNoTracking()
             .Where(p => p.PessoaId == id)
             .Select(p => new PessoaListDto(
-                p.PessoaId, "JURIDICA", p.NomeFantasia, p.Cnpj, null, p.RazaoSocial, p.Pessoa.EnderecoId, p.Pessoa.OrigemId))
+                p.PessoaId,
+                "JURIDICA",
+                p.NomeFantasia,
+                p.Cnpj,
+                null,
+                p.RazaoSocial,
+                p.Pessoa.EnderecoId,
+                p.Pessoa.OrigemId,
+                p.Pessoa.Contratos
+                    .Select(c => c.ContratoId)
+                    .Distinct()
+                    .Count(),
+                p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Locador),
+                p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Locatario),
+                p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Fiador),
+                p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Vendedor),
+                p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Comprador)
+            ))
             .FirstOrDefaultAsync(ct);
     }
 

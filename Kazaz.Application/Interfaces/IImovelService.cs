@@ -9,7 +9,8 @@ namespace Kazaz.Application.Interfaces;
 
 public interface IImovelService
 {
-    Task<(IReadOnlyList<ImovelListDto> Items, int Total)> ListarAsync(int page, int pageSize, string? termo, CancellationToken ct);
+
+    Task<(IReadOnlyList<ImovelListDto> Items, int Total)> ListarAsync(ListarImoveisQuery query,CancellationToken ct);
     Task<ImovelDetailsDto?> ObterAsync(Guid id, CancellationToken ct);
     Task<Guid> CriarAsync(ImovelUpsertDto dto, CancellationToken ct);
     Task AtualizarAsync(Guid id, ImovelUpsertDto dto, CancellationToken ct);

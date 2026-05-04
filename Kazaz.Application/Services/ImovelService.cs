@@ -20,19 +20,70 @@ public class ImovelService : IImovelService
     }
 
     public async Task<(IReadOnlyList<ImovelListDto> Items, int Total)> ListarAsync(
-        int page, int pageSize, string? termo, CancellationToken ct)
+    ListarImoveisQuery query,
+    CancellationToken ct)
     {
-        page = page < 1 ? 1 : page;
-        pageSize = pageSize < 1 ? 10 : pageSize;
+        var page = query.Page < 1 ? 1 : query.Page;
+        var pageSize = query.PageSize < 1 ? 10 : Math.Min(query.PageSize, 100);
 
         var q = ctx.Set<Imovel>().AsNoTracking();
 
-        if (!string.IsNullOrWhiteSpace(termo))
-            q = q.Where(i => EF.Functions.ILike(i.Codigo, $"%{termo}%"));
+        if (!string.IsNullOrWhiteSpace(query.Termo))
+        {
+            var termo = query.Termo.Trim();
+
+            q = q.Where(i =>
+                EF.Functions.ILike(i.Codigo, $"%{termo}%") ||
+                EF.Functions.ILike(i.Titulo, $"%{termo}%")
+            );
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.DocumentoProprietario))
+        {
+            var documento = new string(query.DocumentoProprietario
+                .Where(char.IsDigit)
+                .ToArray());
+
+            if (!string.IsNullOrWhiteSpace(documento))
+            {
+                q = q.Where(i =>
+                    ctx.Set<Contrato>().Any(c =>
+                        c.ImovelId == i.Id &&
+                        c.Partes.Any(p =>
+                            (
+                                p.Papel == PapelContrato.Locador ||
+                                p.Papel == PapelContrato.Vendedor
+                            )
+                            &&
+                            (
+                                p.Pessoa.PessoaFisica != null &&
+                                EF.Functions.ILike(p.Pessoa.PessoaFisica.Cpf, $"%{documento}%")
+                                ||
+                                p.Pessoa.PessoaJuridica != null &&
+                                EF.Functions.ILike(p.Pessoa.PessoaJuridica.Cnpj, $"%{documento}%")
+                            )
+                        )
+                    )
+                );
+            }
+        }
+
+        if (query.TipoImovelId.HasValue)
+            q = q.Where(i => i.TipoImovelId == query.TipoImovelId.Value);
+
+        if (query.Finalidade.HasValue)
+            q = q.Where(i => (int)i.Finalidade == query.Finalidade.Value);
+
+        if (query.CidadeId.HasValue)
+            q = q.Where(i => i.Endereco.CidadeId == query.CidadeId.Value);
+
+        if (query.Status.HasValue)
+            q = q.Where(i => (int)i.Status == query.Status.Value);
 
         var total = await q.CountAsync(ct);
 
-        var items = await q.OrderBy(i => i.Codigo)
+        var items = await q
+            .OrderBy(i => i.Codigo)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(i => new ImovelListDto(

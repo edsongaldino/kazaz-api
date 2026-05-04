@@ -1,5 +1,6 @@
 ﻿using Kazaz.Application.Contracts;
 using Kazaz.Application.DTOs;
+using Kazaz.Application.Interfaces;
 using Kazaz.Application.Services;
 using Kazaz.Application.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -90,14 +91,12 @@ public class ContratosController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<ContratoResponse>>> Listar(
-        [FromQuery] Guid? imovelId,
-        [FromQuery] TipoContrato? tipo,
-        [FromQuery] StatusContrato? status,
-        CancellationToken ct)
+    public async Task<ActionResult<PagedResult<ContratoResponse>>> Listar(
+    [FromQuery] ListarContratosQuery query,
+    CancellationToken ct)
     {
-        var res = await _service.ListarAsync(imovelId, tipo, status, ct);
-        return Ok(res);
+        var result = await _service.ListarAsync(query, ct);
+        return Ok(result);
     }
 
 
@@ -111,4 +110,5 @@ public class ContratosController : ControllerBase
         var result = await _contratoConviteService.GerarLinksAsync(imovelId, request, ct);
         return Ok(result);
     }
+
 }

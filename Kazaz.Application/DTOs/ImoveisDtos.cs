@@ -55,3 +55,17 @@ public sealed record ImovelContratoParteDto(
     PapelContrato Papel,
     decimal? Percentual
 );
+
+public class ListarImoveisQuery
+{
+    public int Page { get; set; } = 1;
+    public int PageSize { get; set; } = 10;
+
+    public string? Termo { get; set; } // Código ou título
+    public string? DocumentoProprietario { get; set; }
+
+    public Guid? TipoImovelId { get; set; }
+    public int? Finalidade { get; set; }
+    public Guid? CidadeId { get; set; }
+    public int? Status { get; set; }
+}
