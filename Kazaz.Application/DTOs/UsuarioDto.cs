@@ -32,6 +32,7 @@ public class UsuarioUpdateDto
 {
     public string Nome { get; set; } = default!;
     public string Email { get; set; } = default!;
+    public string? Senha { get; set; }
     public bool Ativo { get; set; }
     public Guid PerfilId { get; set; }
 }

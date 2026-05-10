@@ -18,7 +18,11 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto login)
     {
-        var token = await _service.AutenticarAsync(login);
-        return token == null ? Unauthorized("Credenciais inválidas") : Ok(new { token });
+        var response = await _service.AutenticarAsync(login);
+
+        if (response is null)
+            return Unauthorized(new { message = "Credenciais inválidas" });
+
+        return Ok(response);
     }
 }

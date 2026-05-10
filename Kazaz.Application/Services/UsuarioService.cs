@@ -136,6 +136,11 @@ public class UsuarioService : IUsuarioService
         u.Ativo = dto.Ativo;
         u.PerfilId = dto.PerfilId;
 
+        if (!string.IsNullOrWhiteSpace(dto.Senha))
+        {
+            u.Senha = PasswordHasher.Hash(dto.Senha);
+        }
+
         await _repo.AtualizarAsync(u);
 
         return dto;
@@ -146,7 +151,7 @@ public class UsuarioService : IUsuarioService
         return await _repo.RemoverAsync(id);
     }
 
-    public async Task<string?> AutenticarAsync(LoginDto login)
+    public async Task<LoginResponseDto?> AutenticarAsync(LoginDto login)
     {
         var email = login.Email.Trim().ToLowerInvariant();
 
@@ -156,6 +161,16 @@ public class UsuarioService : IUsuarioService
         if (!PasswordHasher.Verify(login.Senha, usuario.Senha))
             return null;
 
-        return _tokenService.GerarToken(usuario);
+        var token = _tokenService.GerarToken(usuario);
+
+        return new LoginResponseDto
+        {
+            UsuarioId = usuario.Id,
+            Nome = usuario.Nome,
+            Email = usuario.Email,
+            PerfilId = usuario.PerfilId,
+            PerfilNome = usuario.Perfil?.Nome,
+            Token = token
+        };
     }
 }
