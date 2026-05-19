@@ -1,4 +1,4 @@
-﻿using Kazaz.Domain.Entities;
+using Kazaz.Domain.Entities;
 
 public record GerarLinksContratoRequest(
     TipoContrato Tipo,
@@ -35,7 +35,9 @@ public record CadastroPublicoStatusResponse(
     Guid? PessoaId,
     PapelContrato Papel,
     bool Concluido,
-    bool Iniciado
+    bool Iniciado,
+    StatusConviteCadastro Status,
+    string? UltimoComentarioAnalise
 );
 
 public record ConviteCadastroListItemResponse(

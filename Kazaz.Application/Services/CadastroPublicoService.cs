@@ -1,4 +1,4 @@
-﻿using Kazaz.Application.DTOs;
+using Kazaz.Application.DTOs;
 using Kazaz.Application.Interfaces;
 using Kazaz.Domain.Entities;
 using Kazaz.Infrastructure.Data;
@@ -166,18 +166,26 @@ public class CadastroPublicoService(ApplicationDbContext ctx) : ICadastroPublico
     {
         var convite = await ctx.Set<ConviteCadastroContrato>()
             .AsNoTracking()
+            .Include(x => x.Analises)
             .FirstOrDefaultAsync(x => x.Token == token, ct)
             ?? throw new KeyNotFoundException("Convite não encontrado.");
 
         var iniciado = convite.PessoaId.HasValue && convite.PessoaId.Value != Guid.Empty;
         var concluido = convite.Status == StatusConviteCadastro.Preenchido;
 
+        var ultimoComentario = convite.Analises
+            .OrderByDescending(a => a.CriadoEm)
+            .Select(a => a.Comentario)
+            .FirstOrDefault();
+
         return new CadastroPublicoStatusResponse(
             convite.ContratoId,
             convite.PessoaId,
             convite.Papel,
             concluido,
-            iniciado // ✅ NOVO
+            iniciado,
+            convite.Status,
+            ultimoComentario
         );
     }
 
