@@ -22,8 +22,9 @@ public class CadastroPublicoService(ApplicationDbContext ctx) : ICadastroPublico
         if (convite is null)
             return new(false, "Token não encontrado.", null, null, null, null, null, null);
 
-        if (convite.Status != StatusConviteCadastro.PendentePreenchimento)
-            return new(false, $"Convite não está pendente ({convite.Status}).", null, null, null, null, convite.ExpiraEm, null);
+        if (convite.Status != StatusConviteCadastro.PendentePreenchimento &&
+            convite.Status != StatusConviteCadastro.CorrecaoSolicitada)
+            return new(false, $"Convite não está pendente ou sob correção ({convite.Status}).", null, null, null, null, convite.ExpiraEm, null);
 
         if (convite.ExpiraEm is not null && convite.ExpiraEm < DateTime.UtcNow)
             return new(false, "Convite expirado.", null, null, null, null, convite.ExpiraEm, null);
@@ -63,8 +64,9 @@ public class CadastroPublicoService(ApplicationDbContext ctx) : ICadastroPublico
             .FirstOrDefaultAsync(x => x.Token == token, ct)
             ?? throw new KeyNotFoundException("Convite não encontrado.");
 
-        if (convite.Status != StatusConviteCadastro.PendentePreenchimento)
-            throw new InvalidOperationException("Convite não está pendente.");
+        if (convite.Status != StatusConviteCadastro.PendentePreenchimento &&
+            convite.Status != StatusConviteCadastro.CorrecaoSolicitada)
+            throw new InvalidOperationException("Convite não está pendente ou sob correção.");
 
         if (convite.ExpiraEm is not null && convite.ExpiraEm < DateTime.UtcNow)
             throw new InvalidOperationException("Convite expirado.");
@@ -134,8 +136,9 @@ public class CadastroPublicoService(ApplicationDbContext ctx) : ICadastroPublico
             .FirstOrDefaultAsync(x => x.Token == token, ct)
             ?? throw new KeyNotFoundException("Convite não encontrado.");
 
-        if (convite.Status != StatusConviteCadastro.PendentePreenchimento)
-            throw new InvalidOperationException("Convite não está pendente.");
+        if (convite.Status != StatusConviteCadastro.PendentePreenchimento &&
+            convite.Status != StatusConviteCadastro.CorrecaoSolicitada)
+            throw new InvalidOperationException("Convite não está pendente ou sob correção.");
 
         if (convite.ExpiraEm is not null && convite.ExpiraEm < DateTime.UtcNow)
             throw new InvalidOperationException("Convite expirado.");
