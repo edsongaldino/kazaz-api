@@ -1,4 +1,4 @@
-﻿using Kazaz.Application.DTOs;
+using Kazaz.Application.DTOs;
 using Kazaz.Application.Services.Interfaces;
 using Kazaz.Domain;
 using Kazaz.Domain.Entities;
@@ -144,13 +144,47 @@ public class ContratosService : IContratosService
     {
         var contrato = await _db.Contratos
             .AsNoTracking()
+            .Include(x => x.Imovel)
+                .ThenInclude(i => i.TipoImovel)
             .Include(x => x.Partes)
                 .ThenInclude(p => p.Pessoa)
+                    .ThenInclude(p => p.PessoaFisica)
+            .Include(x => x.Partes)
+                .ThenInclude(p => p.Pessoa)
+                    .ThenInclude(p => p.PessoaJuridica)
             .FirstOrDefaultAsync(x => x.Id == id, ct);
 
         if (contrato is null) throw new InvalidOperationException("Contrato não encontrado.");
 
         return Map(contrato);
+    }
+
+    public async Task<ContratoResponse> AtualizarAsync(Guid id, AtualizarContratoRequest req, CancellationToken ct)
+    {
+        var contrato = await _db.Contratos
+            .Include(x => x.Partes)
+            .FirstOrDefaultAsync(x => x.Id == id, ct);
+
+        if (contrato is null) throw new InvalidOperationException("Contrato não encontrado.");
+
+        contrato.ImovelId = req.ImovelId;
+        contrato.InicioVigencia = req.InicioVigencia;
+        contrato.FimVigencia = req.FimVigencia;
+        contrato.Status = (StatusContrato)req.Status;
+
+        // Remove partes anteriores e insere as novas
+        _db.ContratoPartes.RemoveRange(contrato.Partes);
+
+        contrato.Partes = req.Partes.Select(p => new ContratoParte
+        {
+            PessoaId = p.PessoaId,
+            Papel = (PapelContrato)p.Papel,
+            Percentual = p.Percentual
+        }).ToList();
+
+        await _db.SaveChangesAsync(ct);
+
+        return await ObterPorIdAsync(id, ct);
     }
 
     public async Task<PagedResult<ContratoResponse>> ListarAsync(
@@ -336,6 +370,146 @@ public class ContratosService : IContratosService
                 (int)p.Papel,
                 p.Percentual
             )).ToList()
+        );
+    }
+
+    public async Task<ContratoChecklistEntradaResponse> ObterChecklistEntradaAsync(Guid contratoId, CancellationToken ct)
+    {
+        var e = await _db.ContratoChecklistEntrada
+            .FirstOrDefaultAsync(x => x.ContratoId == contratoId, ct);
+
+        if (e is null)
+        {
+            return new ContratoChecklistEntradaResponse(
+                contratoId, null, null, null, null, null, null, null, null, null, null, null, null, null, null
+            );
+        }
+
+        return MapEntrada(e);
+    }
+
+    public async Task<ContratoChecklistEntradaResponse> SalvarChecklistEntradaAsync(Guid contratoId, SalvarChecklistEntradaRequest req, CancellationToken ct)
+    {
+        var contratoExiste = await _db.Contratos.AnyAsync(x => x.Id == contratoId, ct);
+        if (!contratoExiste) throw new InvalidOperationException("Contrato não encontrado.");
+
+        var e = await _db.ContratoChecklistEntrada
+            .FirstOrDefaultAsync(x => x.ContratoId == contratoId, ct);
+
+        if (e is null)
+        {
+            e = new ContratoChecklistEntrada { ContratoId = contratoId };
+            _db.ContratoChecklistEntrada.Add(e);
+        }
+
+        e.AssinadoEm = req.AssinadoEm;
+        e.SeguroIncendio = req.SeguroIncendio;
+        e.Chaves = req.Chaves;
+        e.Energia = req.Energia;
+        e.Agua = req.Agua;
+        e.Gas = req.Gas;
+        e.Condominio = req.Condominio;
+        e.IptuGaragem = req.IptuGaragem;
+        e.Iptu = req.Iptu;
+        e.VistoriaEntradaEm = req.VistoriaEntradaEm;
+        e.Manutencao = req.Manutencao;
+        e.ObservacoesFinais = req.ObservacoesFinais;
+        e.BonusLocacao = req.BonusLocacao;
+        e.DataPagamentoBonus = req.DataPagamentoBonus;
+
+        await _db.SaveChangesAsync(ct);
+        return MapEntrada(e);
+    }
+
+    public async Task<ContratoChecklistSaidaResponse> ObterChecklistSaidaAsync(Guid contratoId, CancellationToken ct)
+    {
+        var s = await _db.ContratoChecklistSaida
+            .FirstOrDefaultAsync(x => x.ContratoId == contratoId, ct);
+
+        if (s is null)
+        {
+            return new ContratoChecklistSaidaResponse(
+                contratoId, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null
+            );
+        }
+
+        return MapSaida(s);
+    }
+
+    public async Task<ContratoChecklistSaidaResponse> SalvarChecklistSaidaAsync(Guid contratoId, SalvarChecklistSaidaRequest req, CancellationToken ct)
+    {
+        var contratoExiste = await _db.Contratos.AnyAsync(x => x.Id == contratoId, ct);
+        if (!contratoExiste) throw new InvalidOperationException("Contrato não encontrado.");
+
+        var s = await _db.ContratoChecklistSaida
+            .FirstOrDefaultAsync(x => x.ContratoId == contratoId, ct);
+
+        if (s is null)
+        {
+            s = new ContratoChecklistSaida { ContratoId = contratoId };
+            _db.ContratoChecklistSaida.Add(s);
+        }
+
+        s.MotivoSaida = req.MotivoSaida;
+        s.Aluguel = req.Aluguel;
+        s.MultaContratual = req.MultaContratual;
+        s.AvisoSaidaEm = req.AvisoSaidaEm;
+        s.Chaves = req.Chaves;
+        s.AvisoProprietario = req.AvisoProprietario;
+        s.Energia = req.Energia;
+        s.Gas = req.Gas;
+        s.Agua = req.Agua;
+        s.Condominio = req.Condominio;
+        s.Iptu = req.Iptu;
+        s.VistoriaSaidaEm = req.VistoriaSaidaEm;
+        s.PinturaManutencao = req.PinturaManutencao;
+        s.ReativarImovelNoSite = req.ReativarImovelNoSite;
+        s.CancelamentoSeguroFianca = req.CancelamentoSeguroFianca;
+
+        await _db.SaveChangesAsync(ct);
+        return MapSaida(s);
+    }
+
+    private static ContratoChecklistEntradaResponse MapEntrada(ContratoChecklistEntrada e)
+    {
+        return new ContratoChecklistEntradaResponse(
+            e.ContratoId,
+            e.AssinadoEm,
+            e.SeguroIncendio,
+            e.Chaves,
+            e.Energia,
+            e.Agua,
+            e.Gas,
+            e.Condominio,
+            e.IptuGaragem,
+            e.Iptu,
+            e.VistoriaEntradaEm,
+            e.Manutencao,
+            e.ObservacoesFinais,
+            e.BonusLocacao,
+            e.DataPagamentoBonus
+        );
+    }
+
+    private static ContratoChecklistSaidaResponse MapSaida(ContratoChecklistSaida s)
+    {
+        return new ContratoChecklistSaidaResponse(
+            s.ContratoId,
+            s.MotivoSaida,
+            s.Aluguel,
+            s.MultaContratual,
+            s.AvisoSaidaEm,
+            s.Chaves,
+            s.AvisoProprietario,
+            s.Energia,
+            s.Gas,
+            s.Agua,
+            s.Condominio,
+            s.Iptu,
+            s.VistoriaSaidaEm,
+            s.PinturaManutencao,
+            s.ReativarImovelNoSite,
+            s.CancelamentoSeguroFianca
         );
     }
 }

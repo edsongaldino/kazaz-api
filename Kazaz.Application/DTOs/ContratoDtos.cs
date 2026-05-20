@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,6 +17,14 @@ public record CriarContratoRequest(
     Guid ImovelId,
     DateOnly InicioVigencia,
     DateOnly? FimVigencia,
+    List<ContratoParteRequest> Partes
+);
+
+public record AtualizarContratoRequest(
+    Guid ImovelId,
+    DateOnly InicioVigencia,
+    DateOnly? FimVigencia,
+    int Status,
     List<ContratoParteRequest> Partes
 );
 

@@ -1,4 +1,4 @@
-﻿using Kazaz.Application.Contracts;
+using Kazaz.Application.Contracts;
 using Kazaz.Application.DTOs;
 using Kazaz.Application.Interfaces;
 using Kazaz.Application.Services;
@@ -90,6 +90,23 @@ public class ContratosController : ControllerBase
         }
     }
 
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult<ContratoResponse>> Atualizar(
+        Guid id,
+        [FromBody] AtualizarContratoRequest request,
+        CancellationToken ct)
+    {
+        try
+        {
+            var res = await _service.AtualizarAsync(id, request, ct);
+            return Ok(res);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
     [HttpGet]
     public async Task<ActionResult<PagedResult<ContratoResponse>>> Listar(
     [FromQuery] ListarContratosQuery query,
@@ -111,4 +128,65 @@ public class ContratosController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("{id:guid}/checklist-entrada")]
+    public async Task<ActionResult<ContratoChecklistEntradaResponse>> ObterChecklistEntrada(Guid id, CancellationToken ct)
+    {
+        try
+        {
+            var res = await _service.ObterChecklistEntradaAsync(id, ct);
+            return Ok(res);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
+    }
+
+    [HttpPut("{id:guid}/checklist-entrada")]
+    public async Task<ActionResult<ContratoChecklistEntradaResponse>> SalvarChecklistEntrada(
+        Guid id,
+        [FromBody] SalvarChecklistEntradaRequest req,
+        CancellationToken ct)
+    {
+        try
+        {
+            var res = await _service.SalvarChecklistEntradaAsync(id, req, ct);
+            return Ok(res);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpGet("{id:guid}/checklist-saida")]
+    public async Task<ActionResult<ContratoChecklistSaidaResponse>> ObterChecklistSaida(Guid id, CancellationToken ct)
+    {
+        try
+        {
+            var res = await _service.ObterChecklistSaidaAsync(id, ct);
+            return Ok(res);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
+    }
+
+    [HttpPut("{id:guid}/checklist-saida")]
+    public async Task<ActionResult<ContratoChecklistSaidaResponse>> SalvarChecklistSaida(
+        Guid id,
+        [FromBody] SalvarChecklistSaidaRequest req,
+        CancellationToken ct)
+    {
+        try
+        {
+            var res = await _service.SalvarChecklistSaidaAsync(id, req, ct);
+            return Ok(res);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
 }
