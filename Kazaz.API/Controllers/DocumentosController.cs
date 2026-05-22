@@ -13,9 +13,9 @@ public class DocumentosController : ControllerBase
     public DocumentosController(IDocumentoService service) => _service = service;
 
     [HttpGet("pessoa/{pessoaId:guid}")]
-    public async Task<IActionResult> ListarPorPessoa(Guid pessoaId, CancellationToken ct)
+    public async Task<IActionResult> ListarPorPessoa(Guid pessoaId, [FromQuery] Guid? contratoId, CancellationToken ct)
     {
-        var items = await _service.ListarPorPessoaAsync(pessoaId, ct);
+        var items = await _service.ListarPorPessoaAsync(pessoaId, contratoId, ct);
         return Ok(items);
     }
 

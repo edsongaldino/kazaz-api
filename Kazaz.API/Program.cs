@@ -47,8 +47,8 @@ builder.Services.AddAuthentication(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
+        ValidateIssuer = false,
+        ValidateAudience = false,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtSettings["Issuer"],
@@ -134,7 +134,7 @@ if (!Directory.Exists(storagePath))
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(storagePath),
-    RequestPath = "/files"
+    RequestPath = "/api/files"
 });
 
 app.UseCors(allowedOrigins);

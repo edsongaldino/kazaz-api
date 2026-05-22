@@ -1,4 +1,4 @@
-﻿using Kazaz.Application.DTOs;
+using Kazaz.Application.DTOs;
 using Kazaz.Application.Interfaces;
 using Kazaz.Application.Interfaces.Storage;
 using Kazaz.Domain.Entities;
@@ -14,10 +14,17 @@ namespace Kazaz.Application.Services;
 
 public class DocumentoService(ApplicationDbContext ctx, IFileStorage storage) : IDocumentoService
 {
-    public async Task<IReadOnlyList<DocumentoListDto>> ListarPorPessoaAsync(Guid pessoaId, CancellationToken ct)
+    public async Task<IReadOnlyList<DocumentoListDto>> ListarPorPessoaAsync(Guid pessoaId, Guid? contratoId, CancellationToken ct)
     {
-        return await ctx.Set<PessoaDocumento>().AsNoTracking()
-            .Where(a => a.PessoaId == pessoaId)
+        var query = ctx.Set<PessoaDocumento>().AsNoTracking()
+            .Where(a => a.PessoaId == pessoaId);
+
+        if (contratoId.HasValue && contratoId.Value != Guid.Empty)
+        {
+            query = query.Where(a => a.ContratoId == contratoId.Value);
+        }
+
+        return await query
             .Include(a => a.Documento)
             .Include(a => a.Tipo)
             .OrderBy(a => a.Tipo.Ordem)
