@@ -21,4 +21,5 @@ public class ContratoChecklistEntrada
     public string? ObservacoesFinais { get; set; }
     public string? BonusLocacao { get; set; }
     public DateOnly? DataPagamentoBonus { get; set; }
+    public string? EtapasPersonalizadasJson { get; set; }
 }

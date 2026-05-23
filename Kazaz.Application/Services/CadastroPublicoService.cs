@@ -26,7 +26,8 @@ public class CadastroPublicoService(ApplicationDbContext ctx) : ICadastroPublico
             convite.Status != StatusConviteCadastro.CorrecaoSolicitada)
             return new(false, $"Convite não está pendente ou sob correção ({convite.Status}).", null, null, null, null, convite.ExpiraEm, null);
 
-        if (convite.ExpiraEm is not null && convite.ExpiraEm < DateTime.UtcNow)
+        if (convite.Status != StatusConviteCadastro.CorrecaoSolicitada &&
+            convite.ExpiraEm is not null && convite.ExpiraEm < DateTime.UtcNow)
             return new(false, "Convite expirado.", null, null, null, null, convite.ExpiraEm, null);
 
         if (convite.Contrato.Status != StatusContrato.Rascunho)
@@ -68,7 +69,8 @@ public class CadastroPublicoService(ApplicationDbContext ctx) : ICadastroPublico
             convite.Status != StatusConviteCadastro.CorrecaoSolicitada)
             throw new InvalidOperationException("Convite não está pendente ou sob correção.");
 
-        if (convite.ExpiraEm is not null && convite.ExpiraEm < DateTime.UtcNow)
+        if (convite.Status != StatusConviteCadastro.CorrecaoSolicitada &&
+            convite.ExpiraEm is not null && convite.ExpiraEm < DateTime.UtcNow)
             throw new InvalidOperationException("Convite expirado.");
 
         if (convite.Contrato.Status != StatusContrato.Rascunho)
@@ -140,7 +142,8 @@ public class CadastroPublicoService(ApplicationDbContext ctx) : ICadastroPublico
             convite.Status != StatusConviteCadastro.CorrecaoSolicitada)
             throw new InvalidOperationException("Convite não está pendente ou sob correção.");
 
-        if (convite.ExpiraEm is not null && convite.ExpiraEm < DateTime.UtcNow)
+        if (convite.Status != StatusConviteCadastro.CorrecaoSolicitada &&
+            convite.ExpiraEm is not null && convite.ExpiraEm < DateTime.UtcNow)
             throw new InvalidOperationException("Convite expirado.");
 
         if (convite.Contrato.Status != StatusContrato.Rascunho)

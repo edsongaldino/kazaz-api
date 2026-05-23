@@ -5,7 +5,9 @@ using Kazaz.Domain.Entities;
 using Kazaz.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 
 namespace Kazaz.Application.Services;
 
@@ -378,13 +380,19 @@ public class ContratosService : IContratosService
         var e = await _db.ContratoChecklistEntrada
             .FirstOrDefaultAsync(x => x.ContratoId == contratoId, ct);
 
+        var etapasGlobais = await _db.ChecklistEtapasGlobais
+            .Where(x => x.TipoChecklist == "entrada")
+            .ToListAsync(ct);
+
         if (e is null)
         {
+            var jsonMesclado = MesclarEtapasGlobais(null, etapasGlobais);
             return new ContratoChecklistEntradaResponse(
-                contratoId, null, null, null, null, null, null, null, null, null, null, null, null, null, null
+                contratoId, null, null, null, null, null, null, null, null, null, null, null, null, null, null, jsonMesclado
             );
         }
 
+        e.EtapasPersonalizadasJson = MesclarEtapasGlobais(e.EtapasPersonalizadasJson, etapasGlobais);
         return MapEntrada(e);
     }
 
@@ -416,6 +424,7 @@ public class ContratosService : IContratosService
         e.ObservacoesFinais = req.ObservacoesFinais;
         e.BonusLocacao = req.BonusLocacao;
         e.DataPagamentoBonus = req.DataPagamentoBonus;
+        e.EtapasPersonalizadasJson = req.EtapasPersonalizadasJson;
 
         await _db.SaveChangesAsync(ct);
         return MapEntrada(e);
@@ -426,13 +435,19 @@ public class ContratosService : IContratosService
         var s = await _db.ContratoChecklistSaida
             .FirstOrDefaultAsync(x => x.ContratoId == contratoId, ct);
 
+        var etapasGlobais = await _db.ChecklistEtapasGlobais
+            .Where(x => x.TipoChecklist == "saida")
+            .ToListAsync(ct);
+
         if (s is null)
         {
+            var jsonMesclado = MesclarEtapasGlobais(null, etapasGlobais);
             return new ContratoChecklistSaidaResponse(
-                contratoId, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null
+                contratoId, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, jsonMesclado
             );
         }
 
+        s.EtapasPersonalizadasJson = MesclarEtapasGlobais(s.EtapasPersonalizadasJson, etapasGlobais);
         return MapSaida(s);
     }
 
@@ -465,6 +480,7 @@ public class ContratosService : IContratosService
         s.PinturaManutencao = req.PinturaManutencao;
         s.ReativarImovelNoSite = req.ReativarImovelNoSite;
         s.CancelamentoSeguroFianca = req.CancelamentoSeguroFianca;
+        s.EtapasPersonalizadasJson = req.EtapasPersonalizadasJson;
 
         await _db.SaveChangesAsync(ct);
         return MapSaida(s);
@@ -487,7 +503,8 @@ public class ContratosService : IContratosService
             e.Manutencao,
             e.ObservacoesFinais,
             e.BonusLocacao,
-            e.DataPagamentoBonus
+            e.DataPagamentoBonus,
+            e.EtapasPersonalizadasJson
         );
     }
 
@@ -509,7 +526,117 @@ public class ContratosService : IContratosService
             s.VistoriaSaidaEm,
             s.PinturaManutencao,
             s.ReativarImovelNoSite,
-            s.CancelamentoSeguroFianca
+            s.CancelamentoSeguroFianca,
+            s.EtapasPersonalizadasJson
         );
+    }
+
+    public async Task<List<ChecklistEtapaGlobalResponse>> ObterEtapasGlobaisAsync(string tipoChecklist, CancellationToken ct)
+    {
+        var list = await _db.ChecklistEtapasGlobais
+            .Where(x => x.TipoChecklist == tipoChecklist)
+            .ToListAsync(ct);
+
+        return list.Select(x => new ChecklistEtapaGlobalResponse(
+            x.Id,
+            x.TipoChecklist,
+            x.Label,
+            x.TipoField,
+            x.Card
+        )).ToList();
+    }
+
+    public async Task<ChecklistEtapaGlobalResponse> CriarEtapaGlobalAsync(CriarChecklistEtapaGlobalRequest req, CancellationToken ct)
+    {
+        var entity = new ChecklistEtapaGlobal
+        {
+            Id = Guid.NewGuid(),
+            TipoChecklist = req.TipoChecklist,
+            Label = req.Label,
+            TipoField = req.TipoField,
+            Card = req.Card
+        };
+
+        _db.ChecklistEtapasGlobais.Add(entity);
+        await _db.SaveChangesAsync(ct);
+
+        return new ChecklistEtapaGlobalResponse(
+            entity.Id,
+            entity.TipoChecklist,
+            entity.Label,
+            entity.TipoField,
+            entity.Card
+        );
+    }
+
+    public async Task ExcluirEtapaGlobalAsync(Guid id, CancellationToken ct)
+    {
+        var entity = await _db.ChecklistEtapasGlobais.FirstOrDefaultAsync(x => x.Id == id, ct);
+        if (entity != null)
+        {
+            _db.ChecklistEtapasGlobais.Remove(entity);
+            await _db.SaveChangesAsync(ct);
+        }
+    }
+
+    private string MesclarEtapasGlobais(string? etapasSalvasJson, List<ChecklistEtapaGlobal> etapasGlobais)
+    {
+        if (etapasGlobais == null || etapasGlobais.Count == 0)
+        {
+            return etapasSalvasJson ?? "[]";
+        }
+
+        List<CustomStepModel> etapasSalvas = new();
+        if (!string.IsNullOrWhiteSpace(etapasSalvasJson))
+        {
+            try
+            {
+                etapasSalvas = JsonSerializer.Deserialize<List<CustomStepModel>>(
+                    etapasSalvasJson,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                ) ?? new List<CustomStepModel>();
+            }
+            catch
+            {
+                etapasSalvas = new List<CustomStepModel>();
+            }
+        }
+
+        foreach (var eg in etapasGlobais)
+        {
+            var globalId = "global_" + eg.Id;
+            var step = etapasSalvas.FirstOrDefault(x => x.id == globalId);
+            if (step == null)
+            {
+                etapasSalvas.Add(new CustomStepModel
+                {
+                    id = globalId,
+                    label = eg.Label,
+                    tipo = eg.TipoField,
+                    card = eg.Card,
+                    valor = string.Empty,
+                    isGlobal = true
+                });
+            }
+            else
+            {
+                step.label = eg.Label;
+                step.tipo = eg.TipoField;
+                step.card = eg.Card;
+                step.isGlobal = true;
+            }
+        }
+
+        return JsonSerializer.Serialize(etapasSalvas);
+    }
+
+    private class CustomStepModel
+    {
+        public string id { get; set; } = string.Empty;
+        public string label { get; set; } = string.Empty;
+        public string tipo { get; set; } = string.Empty;
+        public string card { get; set; } = string.Empty;
+        public object? valor { get; set; }
+        public bool? isGlobal { get; set; }
     }
 }

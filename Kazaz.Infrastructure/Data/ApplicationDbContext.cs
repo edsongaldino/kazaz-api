@@ -39,6 +39,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<ContratoParte> ContratoPartes => Set<ContratoParte>();
     public DbSet<ContratoChecklistEntrada> ContratoChecklistEntrada => Set<ContratoChecklistEntrada>();
     public DbSet<ContratoChecklistSaida> ContratoChecklistSaida => Set<ContratoChecklistSaida>();
+    public DbSet<ChecklistEtapaGlobal> ChecklistEtapasGlobais => Set<ChecklistEtapaGlobal>();
 
     public DbSet<RegraDocumentoCadastro> RegraDocumentoCadastro => Set<RegraDocumentoCadastro>();
 

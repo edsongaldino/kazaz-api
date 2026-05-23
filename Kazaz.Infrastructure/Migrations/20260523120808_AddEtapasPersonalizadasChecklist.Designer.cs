@@ -3,6 +3,7 @@ using System;
 using Kazaz.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Kazaz.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260523120808_AddEtapasPersonalizadasChecklist")]
+    partial class AddEtapasPersonalizadasChecklist
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -234,43 +237,6 @@ namespace Kazaz.Infrastructure.Migrations
                         .HasDatabaseName("ux_caracteristicas_nome");
 
                     b.ToTable("caracteristicas", (string)null);
-                });
-
-            modelBuilder.Entity("Kazaz.Domain.Entities.ChecklistEtapaGlobal", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Card")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)")
-                        .HasColumnName("card");
-
-                    b.Property<string>("Label")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("character varying(250)")
-                        .HasColumnName("label");
-
-                    b.Property<string>("TipoChecklist")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("tipo_checklist");
-
-                    b.Property<string>("TipoField")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("tipo_field");
-
-                    b.HasKey("Id")
-                        .HasName("pk_checklist_etapas_globais");
-
-                    b.ToTable("checklist_etapas_globais", (string)null);
                 });
 
             modelBuilder.Entity("Kazaz.Domain.Entities.Cidade", b =>

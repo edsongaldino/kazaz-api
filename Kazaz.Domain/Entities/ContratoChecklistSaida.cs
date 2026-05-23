@@ -22,4 +22,5 @@ public class ContratoChecklistSaida
     public string? PinturaManutencao { get; set; }
     public string? ReativarImovelNoSite { get; set; }
     public string? CancelamentoSeguroFianca { get; set; }
+    public string? EtapasPersonalizadasJson { get; set; }
 }

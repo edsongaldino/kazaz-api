@@ -17,7 +17,8 @@ public record ContratoChecklistEntradaResponse(
     string? Manutencao,
     string? ObservacoesFinais,
     string? BonusLocacao,
-    DateOnly? DataPagamentoBonus
+    DateOnly? DataPagamentoBonus,
+    string? EtapasPersonalizadasJson
 );
 
 public record SalvarChecklistEntradaRequest(
@@ -34,7 +35,8 @@ public record SalvarChecklistEntradaRequest(
     string? Manutencao,
     string? ObservacoesFinais,
     string? BonusLocacao,
-    DateOnly? DataPagamentoBonus
+    DateOnly? DataPagamentoBonus,
+    string? EtapasPersonalizadasJson
 );
 
 public record ContratoChecklistSaidaResponse(
@@ -53,7 +55,8 @@ public record ContratoChecklistSaidaResponse(
     DateOnly? VistoriaSaidaEm,
     string? PinturaManutencao,
     string? ReativarImovelNoSite,
-    string? CancelamentoSeguroFianca
+    string? CancelamentoSeguroFianca,
+    string? EtapasPersonalizadasJson
 );
 
 public record SalvarChecklistSaidaRequest(
@@ -71,5 +74,21 @@ public record SalvarChecklistSaidaRequest(
     DateOnly? VistoriaSaidaEm,
     string? PinturaManutencao,
     string? ReativarImovelNoSite,
-    string? CancelamentoSeguroFianca
+    string? CancelamentoSeguroFianca,
+    string? EtapasPersonalizadasJson
+);
+
+public record ChecklistEtapaGlobalResponse(
+    Guid Id,
+    string TipoChecklist,
+    string Label,
+    string TipoField,
+    string Card
+);
+
+public record CriarChecklistEtapaGlobalRequest(
+    string TipoChecklist,
+    string Label,
+    string TipoField,
+    string Card
 );

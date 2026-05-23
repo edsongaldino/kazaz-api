@@ -189,4 +189,25 @@ public class ContratosController : ControllerBase
             return BadRequest(new { error = ex.Message });
         }
     }
+
+    [HttpGet("checklist-etapas-globais")]
+    public async Task<ActionResult<List<ChecklistEtapaGlobalResponse>>> ObterEtapasGlobais([FromQuery] string tipoChecklist, CancellationToken ct)
+    {
+        var res = await _service.ObterEtapasGlobaisAsync(tipoChecklist, ct);
+        return Ok(res);
+    }
+
+    [HttpPost("checklist-etapas-globais")]
+    public async Task<ActionResult<ChecklistEtapaGlobalResponse>> CriarEtapaGlobal([FromBody] CriarChecklistEtapaGlobalRequest req, CancellationToken ct)
+    {
+        var res = await _service.CriarEtapaGlobalAsync(req, ct);
+        return Ok(res);
+    }
+
+    [HttpDelete("checklist-etapas-globais/{id:guid}")]
+    public async Task<IActionResult> ExcluirEtapaGlobal(Guid id, CancellationToken ct)
+    {
+        await _service.ExcluirEtapaGlobalAsync(id, ct);
+        return NoContent();
+    }
 }

@@ -20,4 +20,8 @@ public interface IContratosService
 
     Task<ContratoChecklistSaidaResponse> ObterChecklistSaidaAsync(Guid contratoId, CancellationToken ct);
     Task<ContratoChecklistSaidaResponse> SalvarChecklistSaidaAsync(Guid contratoId, SalvarChecklistSaidaRequest req, CancellationToken ct);
+
+    Task<List<ChecklistEtapaGlobalResponse>> ObterEtapasGlobaisAsync(string tipoChecklist, CancellationToken ct);
+    Task<ChecklistEtapaGlobalResponse> CriarEtapaGlobalAsync(CriarChecklistEtapaGlobalRequest req, CancellationToken ct);
+    Task ExcluirEtapaGlobalAsync(Guid id, CancellationToken ct);
 }

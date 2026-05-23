@@ -25,6 +25,7 @@ public class ContratoChecklistSaidaConfig : IEntityTypeConfiguration<ContratoChe
         b.Property(x => x.PinturaManutencao).HasColumnName("pintura_manutencao").HasMaxLength(1000);
         b.Property(x => x.ReativarImovelNoSite).HasColumnName("reativar_imovel_no_site").HasMaxLength(250);
         b.Property(x => x.CancelamentoSeguroFianca).HasColumnName("cancelamento_seguro_fianca").HasMaxLength(250);
+        b.Property(x => x.EtapasPersonalizadasJson).HasColumnName("etapas_personalizadas_json").HasColumnType("text");
 
         b.HasOne(x => x.Contrato)
             .WithOne()

@@ -24,6 +24,7 @@ public class ContratoChecklistEntradaConfig : IEntityTypeConfiguration<ContratoC
         b.Property(x => x.ObservacoesFinais).HasColumnName("observacoes_finais").HasMaxLength(1000);
         b.Property(x => x.BonusLocacao).HasColumnName("bonus_locacao").HasMaxLength(250);
         b.Property(x => x.DataPagamentoBonus).HasColumnName("data_pagamento_bonus");
+        b.Property(x => x.EtapasPersonalizadasJson).HasColumnName("etapas_personalizadas_json").HasColumnType("text");
 
         b.HasOne(x => x.Contrato)
             .WithOne()
