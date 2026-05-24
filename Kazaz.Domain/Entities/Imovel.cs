@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -25,4 +25,9 @@ public sealed class Imovel
 
 	public ICollection<Foto> Fotos { get; set; } = new List<Foto>();
 	public ICollection<ImovelDocumento> Documentos { get; set; } = new List<ImovelDocumento>();
+
+	/// <summary>
+	/// Proprietários vinculados diretamente ao imóvel (independente de contratos).
+	/// </summary>
+	public ICollection<ImovelProprietario> Proprietarios { get; set; } = new List<ImovelProprietario>();
 }

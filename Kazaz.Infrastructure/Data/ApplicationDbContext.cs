@@ -41,6 +41,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<ContratoChecklistSaida> ContratoChecklistSaida => Set<ContratoChecklistSaida>();
     public DbSet<ChecklistEtapaGlobal> ChecklistEtapasGlobais => Set<ChecklistEtapaGlobal>();
 
+    public DbSet<ImovelProprietario> ImovelProprietarios => Set<ImovelProprietario>();
+
     public DbSet<RegraDocumentoCadastro> RegraDocumentoCadastro => Set<RegraDocumentoCadastro>();
 
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }

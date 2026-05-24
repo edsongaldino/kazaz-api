@@ -55,4 +55,44 @@ public class ImoveisController : ControllerBase
         await _service.RemoverAsync(id, ct);
         return NoContent();
     }
+
+    // ---- Proprietarios ----
+
+    [HttpGet("{id:guid}/proprietarios")]
+    public async Task<IActionResult> ListarProprietarios(Guid id, CancellationToken ct)
+    {
+        var lista = await _service.ListarProprietariosAsync(id, ct);
+        return Ok(lista);
+    }
+
+    [HttpPost("{id:guid}/proprietarios")]
+    public async Task<IActionResult> AdicionarProprietario(
+        Guid id,
+        [FromBody] AdicionarProprietarioRequest req,
+        CancellationToken ct)
+    {
+        try
+        {
+            var dto = await _service.AdicionarProprietarioAsync(id, req, ct);
+            return Created(string.Empty, dto);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpDelete("{id:guid}/proprietarios/{proprietarioId:guid}")]
+    public async Task<IActionResult> RemoverProprietario(Guid id, Guid proprietarioId, CancellationToken ct)
+    {
+        try
+        {
+            await _service.RemoverProprietarioAsync(id, proprietarioId, ct);
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
+    }
 }

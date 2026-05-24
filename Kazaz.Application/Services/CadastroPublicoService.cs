@@ -30,8 +30,8 @@ public class CadastroPublicoService(ApplicationDbContext ctx) : ICadastroPublico
             convite.ExpiraEm is not null && convite.ExpiraEm < DateTime.UtcNow)
             return new(false, "Convite expirado.", null, null, null, null, convite.ExpiraEm, null);
 
-        if (convite.Contrato.Status != StatusContrato.Rascunho)
-            return new(false, "Contrato não está em rascunho.", null, null, null, null, convite.ExpiraEm, null);
+        if (convite.Contrato.Status != StatusContrato.Rascunho && convite.Contrato.Status != StatusContrato.EmAnalise)
+            return new(false, "Contrato não está em rascunho ou em análise.", null, null, null, null, convite.ExpiraEm, null);
 
         return new(
             true,
@@ -73,8 +73,8 @@ public class CadastroPublicoService(ApplicationDbContext ctx) : ICadastroPublico
             convite.ExpiraEm is not null && convite.ExpiraEm < DateTime.UtcNow)
             throw new InvalidOperationException("Convite expirado.");
 
-        if (convite.Contrato.Status != StatusContrato.Rascunho)
-            throw new InvalidOperationException("Contrato não está em rascunho.");
+        if (convite.Contrato.Status != StatusContrato.Rascunho && convite.Contrato.Status != StatusContrato.EmAnalise)
+            throw new InvalidOperationException("Contrato não está em rascunho ou em análise.");
 
         // ✅ Se já iniciou antes, apenas atualiza dados básicos
         Pessoa pessoa;
@@ -146,8 +146,8 @@ public class CadastroPublicoService(ApplicationDbContext ctx) : ICadastroPublico
             convite.ExpiraEm is not null && convite.ExpiraEm < DateTime.UtcNow)
             throw new InvalidOperationException("Convite expirado.");
 
-        if (convite.Contrato.Status != StatusContrato.Rascunho)
-            throw new InvalidOperationException("Contrato não está em rascunho.");
+        if (convite.Contrato.Status != StatusContrato.Rascunho && convite.Contrato.Status != StatusContrato.EmAnalise)
+            throw new InvalidOperationException("Contrato não está em rascunho ou em análise.");
 
         if (convite.PessoaId is null)
             throw new InvalidOperationException("Cadastro ainda não foi iniciado.");

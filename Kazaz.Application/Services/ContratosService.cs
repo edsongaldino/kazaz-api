@@ -85,6 +85,12 @@ public class ContratosService : IContratosService
         ValidarPartesPorTipo(contrato.Tipo, contrato.Partes.Select(p =>
             new ContratoParteRequest(p.PessoaId, (int)p.Papel, p.Percentual)).ToList());
 
+        // Check if there are any unvalidated convites
+        var temConvitePendente = await _db.Set<ConviteCadastroContrato>()
+            .AnyAsync(x => x.ContratoId == contratoId && x.Status != StatusConviteCadastro.Aprovado, ct);
+        if (temConvitePendente)
+            throw new InvalidOperationException("Não é possível ativar o contrato pois existem partes com cadastro pendente de validação.");
+
         // Regra: só locação tem bloqueio de sobreposição (por enquanto)
         if (contrato.Tipo == TipoContrato.Locacao)
         {

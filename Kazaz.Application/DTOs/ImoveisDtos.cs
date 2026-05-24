@@ -1,4 +1,4 @@
-namespace Kazaz.Application.DTOs;
+ï»¿namespace Kazaz.Application.DTOs;
 
 public record ImovelListDto(
     Guid Id,
@@ -8,7 +8,6 @@ public record ImovelListDto(
     StatusImovel Status,
     string TipoImovelNome,
     EnderecoListDto? Endereco
-
 );
 
 public record ImovelUpsertDto(
@@ -36,7 +35,8 @@ public sealed record ImovelDetailsDto(
 	List<ImovelCaracteristicaDto> Caracteristicas,
 	List<ImovelContratoResumoDto> Contratos,
 	List<ImovelFotoDto> Fotos,
-	List<ImovelDocumentoDto> Documentos
+	List<ImovelDocumentoDto> Documentos,
+	List<ImovelProprietarioDto> Proprietarios
 );
 
 public sealed record ImovelContratoResumoDto(
@@ -61,7 +61,7 @@ public class ListarImoveisQuery
     public int Page { get; set; } = 1;
     public int PageSize { get; set; } = 10;
 
-    public string? Termo { get; set; } // Código ou título
+    public string? Termo { get; set; } // Codigo ou titulo
     public string? DocumentoProprietario { get; set; }
 
     public Guid? TipoImovelId { get; set; }

@@ -118,14 +118,21 @@ public class ContratosController : ControllerBase
 
 
 
-    [HttpPost("rascunho/gerar-links")]
+    [HttpPost("rascunho/{imovelId:guid}/gerar-links")]
     public async Task<ActionResult<GerarLinksContratoResponse>> GerarLinks(
-        Guid imovelId,
-        GerarLinksContratoRequest request,
+        [FromRoute] Guid imovelId,
+        [FromBody] GerarLinksContratoRequest request,
         CancellationToken ct)
     {
-        var result = await _contratoConviteService.GerarLinksAsync(imovelId, request, ct);
-        return Ok(result);
+        try
+        {
+            var result = await _contratoConviteService.GerarLinksAsync(imovelId, request, ct);
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 
     [HttpGet("{id:guid}/checklist-entrada")]

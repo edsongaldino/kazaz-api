@@ -1,8 +1,32 @@
 using Kazaz.Domain.Entities;
 
+/// <summary>
+/// Request para gerar um ou mais convites de cadastro vinculados a um contrato de locação.
+/// Se ContratoId for informado, os convites são adicionados ao contrato existente.
+/// Se não for informado, um novo contrato é criado automaticamente.
+/// </summary>
 public record GerarLinksContratoRequest(
     TipoContrato Tipo,
-    PapelContrato Papel,
+
+    /// <summary>
+    /// Se informado, adiciona convites a um contrato já existente (mesmo contrato, múltiplos convites).
+    /// Se nulo, um novo contrato é criado.
+    /// </summary>
+    Guid? ContratoId,
+
+    /// <summary>
+    /// Forma de garantia para contratos de Locação.
+    /// Fiador = gera convite de Locatário + Fiador.
+    /// SeguroFianca = gera apenas convite de Locatário.
+    /// Obrigatório quando Tipo == Locacao.
+    /// </summary>
+    FormaGarantiaLocacao? FormaGarantia,
+
+    /// <summary>
+    /// Marca o contrato como administrado pelo proprietário (caso especial).
+    /// </summary>
+    bool AdministradoPeloProprietario,
+
     int ExpiraEmDias
 );
 

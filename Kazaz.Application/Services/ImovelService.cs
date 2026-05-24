@@ -1,4 +1,4 @@
-﻿using Kazaz.Application.DTOs;
+using Kazaz.Application.DTOs;
 using Kazaz.Application.Interfaces;
 using Kazaz.Application.Interfaces.Services;
 using Kazaz.Domain.Entities;
@@ -126,13 +126,23 @@ public class ImovelService : IImovelService
 
         if (imovel is null) return null;
 
-        // 2) carrega contratos relacionados ao imóvel (novo "vínculo")
+        // 2) carrega contratos relacionados ao imóvel
         var contratos = await ctx.Set<Contrato>()
             .AsNoTracking()
             .Where(c => c.ImovelId == id)
             .Include(c => c.Partes)
                 .ThenInclude(p => p.Pessoa)
             .OrderByDescending(c => c.CriadoEm)
+            .ToListAsync(ct);
+
+        // 3) carrega proprietarios do imovel
+        var proprietarios = await ctx.Set<ImovelProprietario>()
+            .AsNoTracking()
+            .Where(p => p.ImovelId == id && p.Ativo)
+            .Include(p => p.Pessoa)
+                .ThenInclude(p => p.PessoaFisica)
+            .Include(p => p.Pessoa)
+                .ThenInclude(p => p.PessoaJuridica)
             .ToListAsync(ct);
 
         var caracteristicas = imovel.Caracteristicas
@@ -197,6 +207,21 @@ public class ImovelService : IImovelService
             .ToList()
             ?? new List<ImovelDocumentoDto>();
 
+        var proprietariosDto = proprietarios
+            .Select(p => new ImovelProprietarioDto(
+                Id: p.Id,
+                PessoaId: p.PessoaId,
+                PessoaNome: p.Pessoa?.PessoaFisica?.Nome
+                            ?? p.Pessoa?.PessoaJuridica?.NomeFantasia
+                            ?? p.Pessoa?.PessoaJuridica?.RazaoSocial
+                            ?? string.Empty,
+                PessoaDocumento: p.Pessoa?.PessoaFisica?.Cpf
+                                 ?? p.Pessoa?.PessoaJuridica?.Cnpj,
+                Percentual: p.Percentual,
+                Ativo: p.Ativo
+            ))
+            .ToList();
+
         return new ImovelDetailsDto(
             Id: imovel.Id,
             Codigo: imovel.Codigo,
@@ -211,7 +236,8 @@ public class ImovelService : IImovelService
             Caracteristicas: caracteristicas,
             Contratos: contratosDto,
             Fotos: fotos,
-            Documentos: documentos
+            Documentos: documentos,
+            Proprietarios: proprietariosDto
         );
     }
 
@@ -402,5 +428,83 @@ public class ImovelService : IImovelService
             .ToList();
 
         await ctx.Set<ImovelCaracteristica>().AddRangeAsync(novas, ct);
+    }
+
+    // ============================
+    // Proprietarios
+    // ============================
+
+    public async Task<List<ImovelProprietarioDto>> ListarProprietariosAsync(Guid imovelId, CancellationToken ct)
+    {
+        var lista = await ctx.Set<ImovelProprietario>()
+            .AsNoTracking()
+            .Where(p => p.ImovelId == imovelId && p.Ativo)
+            .Include(p => p.Pessoa)
+                .ThenInclude(p => p.PessoaFisica)
+            .Include(p => p.Pessoa)
+                .ThenInclude(p => p.PessoaJuridica)
+            .ToListAsync(ct);
+
+        return lista.Select(p => new ImovelProprietarioDto(
+            Id: p.Id,
+            PessoaId: p.PessoaId,
+            PessoaNome: p.Pessoa?.PessoaFisica?.Nome
+                        ?? p.Pessoa?.PessoaJuridica?.NomeFantasia
+                        ?? p.Pessoa?.PessoaJuridica?.RazaoSocial
+                        ?? string.Empty,
+            PessoaDocumento: p.Pessoa?.PessoaFisica?.Cpf
+                             ?? p.Pessoa?.PessoaJuridica?.Cnpj,
+            Percentual: p.Percentual,
+            Ativo: p.Ativo
+        )).ToList();
+    }
+
+    public async Task<ImovelProprietarioDto> AdicionarProprietarioAsync(
+        Guid imovelId,
+        AdicionarProprietarioRequest req,
+        CancellationToken ct)
+    {
+        var imovelExiste = await ctx.Set<Imovel>().AnyAsync(x => x.Id == imovelId, ct);
+        if (!imovelExiste)
+            throw new InvalidOperationException("Imovel nao encontrado.");
+
+        var pessoaExiste = await ctx.Pessoas.AnyAsync(x => x.Id == req.PessoaId, ct);
+        if (!pessoaExiste)
+            throw new InvalidOperationException("Pessoa nao encontrada.");
+
+        // Verifica duplicidade (proprietario ja ativo para este imovel)
+        var jaExiste = await ctx.Set<ImovelProprietario>()
+            .AnyAsync(x => x.ImovelId == imovelId && x.PessoaId == req.PessoaId && x.Ativo, ct);
+        if (jaExiste)
+            throw new InvalidOperationException("Esta pessoa ja e proprietaria deste imovel.");
+
+        var ent = new ImovelProprietario
+        {
+            Id = Guid.NewGuid(),
+            ImovelId = imovelId,
+            PessoaId = req.PessoaId,
+            Percentual = req.Percentual,
+            Ativo = true,
+            CriadoEm = DateTime.UtcNow
+        };
+
+        ctx.Set<ImovelProprietario>().Add(ent);
+        await ctx.SaveChangesAsync(ct);
+
+        var proprietarios = await ListarProprietariosAsync(imovelId, ct);
+        return proprietarios.First(p => p.Id == ent.Id);
+    }
+
+    public async Task RemoverProprietarioAsync(Guid imovelId, Guid proprietarioId, CancellationToken ct)
+    {
+        var ent = await ctx.Set<ImovelProprietario>()
+            .FirstOrDefaultAsync(x => x.Id == proprietarioId && x.ImovelId == imovelId, ct);
+
+        if (ent is null)
+            throw new InvalidOperationException("Proprietario nao encontrado.");
+
+        // Soft delete
+        ent.Ativo = false;
+        await ctx.SaveChangesAsync(ct);
     }
 }

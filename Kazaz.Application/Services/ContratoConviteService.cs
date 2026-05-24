@@ -1,4 +1,4 @@
-﻿using Kazaz.Application.Contracts;
+using Kazaz.Application.Contracts;
 using Kazaz.Application.DTOs;
 using Kazaz.Domain.Entities;
 using Kazaz.Infrastructure.Data;
@@ -22,91 +22,126 @@ public class ContratoConviteService : IContratoConviteService
         _configuration = configuration;
     }
 
+    /// <summary>
+    /// Gera convites de cadastro vinculados a um contrato de locacao ou venda.
+    ///
+    /// Logica para Locacao:
+    ///   - FormaGarantia = Fiador    => cria convite Locatario + convite Fiador
+    ///   - FormaGarantia = SeguroFianca => cria apenas convite Locatario
+    ///
+    /// Logica para Venda:
+    ///   - Cria convite Comprador (o Vendedor e o proprietario, vinculado ao imovel)
+    ///
+    /// Se request.ContratoId for informado, adiciona convites ao contrato existente.
+    /// Caso contrario, cria um novo contrato.
+    ///
+    /// O Locador (proprietario) NAO e mais gerado como convite; ele e vinculado ao imovel.
+    /// </summary>
     public async Task<GerarLinksContratoResponse> GerarLinksAsync(
-    Guid imovelId,
-    GerarLinksContratoRequest request,
-    CancellationToken ct)
+        Guid imovelId,
+        GerarLinksContratoRequest request,
+        CancellationToken ct)
     {
-        if (!PapelEhValidoParaTipo(request.Tipo, request.Papel))
-            throw new InvalidOperationException("O papel informado não é válido para o tipo de contrato.");
+        // --- Validacoes ---
+        if (request.Tipo == TipoContrato.Locacao && request.FormaGarantia is null)
+            throw new InvalidOperationException("Informe a forma de garantia para contratos de locacao (Fiador ou Seguro Fianca).");
 
-        var numero = await GerarNumeroContratoAsync(ct);
-
-        var contrato = new Contrato
-        {
-            Id = Guid.NewGuid(),
-            ImovelId = imovelId,
-            Tipo = request.Tipo,
-            Status = StatusContrato.Rascunho,
-            Numero = numero,
-            InicioVigencia = DateOnly.FromDateTime(DateTime.UtcNow)
-        };
-
-        _db.Contratos.Add(contrato);
+        var imovelExiste = await _db.Imoveis.AnyAsync(x => x.Id == imovelId, ct);
+        if (!imovelExiste)
+            throw new InvalidOperationException("Imovel nao encontrado.");
 
         var baseUrl = _configuration["PublicUrls:CadastroBaseUrl"];
-
         if (string.IsNullOrWhiteSpace(baseUrl))
             throw new InvalidOperationException("Config ausente: PublicUrls:CadastroBaseUrl");
-
         baseUrl = baseUrl.TrimEnd('/');
 
         var expiraEm = DateTime.UtcNow.AddDays(Math.Max(1, request.ExpiraEmDias));
-        var token = GerarTokenSeguro(48);
 
-        var convite = new ConviteCadastroContrato
+        // --- Obter ou criar contrato ---
+        Contrato contrato;
+
+        if (request.ContratoId.HasValue)
         {
-            Id = Guid.NewGuid(),
-            ContratoId = contrato.Id,
-            Papel = request.Papel,
-            Token = token,
-            ExpiraEm = expiraEm
-        };
+            contrato = await _db.Contratos
+                .FirstOrDefaultAsync(x => x.Id == request.ContratoId.Value && x.ImovelId == imovelId, ct)
+                ?? throw new InvalidOperationException("Contrato nao encontrado para este imovel.");
+        }
+        else
+        {
+            var numero = await GerarNumeroContratoAsync(ct);
 
-        _db.Set<ConviteCadastroContrato>().Add(convite);
+            contrato = new Contrato
+            {
+                Id = Guid.NewGuid(),
+                ImovelId = imovelId,
+                Tipo = request.Tipo,
+                Status = StatusContrato.EmAnalise,
+                Numero = numero,
+                InicioVigencia = DateOnly.FromDateTime(DateTime.UtcNow),
+                FormaGarantia = request.Tipo == TipoContrato.Locacao ? request.FormaGarantia : null,
+                AdministradoPeloProprietario = request.AdministradoPeloProprietario
+            };
+
+            _db.Contratos.Add(contrato);
+        }
+
+        // --- Determinar papeis dos convites a criar ---
+        var papeis = DeterminarPapeis(request.Tipo, request.FormaGarantia);
+
+        // --- Criar convites ---
+        var links = new List<ConviteLinkResponse>();
+
+        foreach (var papel in papeis)
+        {
+            var token = GerarTokenSeguro(48);
+
+            var convite = new ConviteCadastroContrato
+            {
+                Id = Guid.NewGuid(),
+                ContratoId = contrato.Id,
+                Papel = papel,
+                Token = token,
+                ExpiraEm = expiraEm
+            };
+
+            _db.Set<ConviteCadastroContrato>().Add(convite);
+
+            links.Add(new ConviteLinkResponse(
+                papel,
+                token,
+                $"{baseUrl}/cadastro-publico/{token}"
+            ));
+        }
 
         await _db.SaveChangesAsync(ct);
 
         return new GerarLinksContratoResponse(
             contrato.Id,
             contrato.Numero,
-            new List<ConviteLinkResponse>
-            {
-            new ConviteLinkResponse(
-                request.Papel,
-                token,
-                $"{baseUrl}/{token}"
-            )
-            }
+            links
         );
-    }
-
-    private static bool PapelEhValidoParaTipo(TipoContrato tipo, PapelContrato papel)
-    {
-        return tipo switch
-        {
-            TipoContrato.Locacao => papel is PapelContrato.Locatario or PapelContrato.Fiador,
-            TipoContrato.Venda => papel is PapelContrato.Comprador or PapelContrato.Vendedor,
-            _ => false
-        };
     }
 
     // ============================
     // Helpers
     // ============================
 
-    private static PapelContrato[] ObterPapeisContrato(
+    /// <summary>
+    /// Determina quais papeis de convite devem ser gerados conforme tipo e forma de garantia.
+    /// Locador (proprietario) nao e mais gerado como convite.
+    /// </summary>
+    private static IReadOnlyList<PapelContrato> DeterminarPapeis(
         TipoContrato tipo,
-        bool incluirFiador)
+        FormaGarantiaLocacao? formaGarantia)
     {
         return tipo switch
         {
-            TipoContrato.Locacao => incluirFiador
-                ? new[] { PapelContrato.Locador, PapelContrato.Locatario, PapelContrato.Fiador }
-                : new[] { PapelContrato.Locador, PapelContrato.Locatario },
+            TipoContrato.Locacao => formaGarantia == FormaGarantiaLocacao.Fiador
+                ? new[] { PapelContrato.Locatario, PapelContrato.Fiador }
+                : new[] { PapelContrato.Locatario },
 
             TipoContrato.Venda or TipoContrato.Compra
-                => new[] { PapelContrato.Vendedor, PapelContrato.Comprador },
+                => new[] { PapelContrato.Comprador },
 
             _ => Array.Empty<PapelContrato>()
         };
@@ -242,7 +277,6 @@ public class ContratoConviteService : IContratoConviteService
                 x.Contrato.Status,
                 x.Contrato.ImovelId,
 
-                // Ajuste o campo abaixo conforme sua entidade Imovel
                 x.Contrato.Imovel != null
                     ? x.Contrato.Imovel.Titulo
                     : null,
@@ -302,7 +336,7 @@ public class ContratoConviteService : IContratoConviteService
             .FirstOrDefaultAsync(x => x.Id == conviteId, ct);
 
         if (convite is null)
-            throw new InvalidOperationException("Convite não encontrado.");
+            throw new InvalidOperationException("Convite nao encontrado.");
 
         var analise = new AnaliseConvite
         {
@@ -320,7 +354,21 @@ public class ContratoConviteService : IContratoConviteService
         {
             case ResultadoAnaliseConvite.Aprovado:
                 convite.Status = StatusConviteCadastro.Aprovado;
-                convite.Contrato.Status = StatusContrato.Rascunho;
+                if (convite.PessoaId.HasValue)
+                {
+                    var jaExiste = await _db.Set<ContratoParte>()
+                        .AnyAsync(x => x.ContratoId == convite.ContratoId && x.PessoaId == convite.PessoaId.Value, ct);
+                    if (!jaExiste)
+                    {
+                        _db.Set<ContratoParte>().Add(new ContratoParte
+                        {
+                            Id = Guid.NewGuid(),
+                            ContratoId = convite.ContratoId,
+                            PessoaId = convite.PessoaId.Value,
+                            Papel = convite.Papel
+                        });
+                    }
+                }
                 break;
 
             case ResultadoAnaliseConvite.Reprovado:
@@ -330,11 +378,10 @@ public class ContratoConviteService : IContratoConviteService
 
             case ResultadoAnaliseConvite.CorrecaoSolicitada:
                 convite.Status = StatusConviteCadastro.CorrecaoSolicitada;
-                convite.Contrato.Status = StatusContrato.Rascunho;
                 break;
 
             default:
-                throw new InvalidOperationException("Resultado da análise inválido.");
+                throw new InvalidOperationException("Resultado da analise invalido.");
         }
 
         await _db.SaveChangesAsync(ct);

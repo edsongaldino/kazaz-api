@@ -1,4 +1,4 @@
-﻿using Kazaz.Domain.Entities;
+using Kazaz.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -21,6 +21,14 @@ public class ContratoConfig : IEntityTypeConfiguration<Contrato>
         b.HasIndex(x => x.Numero).IsUnique();
 
         b.Property(x => x.CriadoEm).HasColumnName("criado_em");
+
+        b.Property(x => x.FormaGarantia)
+            .HasColumnName("forma_garantia")
+            .HasConversion<int?>();
+
+        b.Property(x => x.AdministradoPeloProprietario)
+            .HasColumnName("administrado_pelo_proprietario")
+            .HasDefaultValue(false);
 
         b.HasOne(x => x.Imovel)
             .WithMany()

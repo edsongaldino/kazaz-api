@@ -1,4 +1,4 @@
-﻿using Kazaz.Application.DTOs;
+using Kazaz.Application.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,4 +15,9 @@ public interface IImovelService
     Task<Guid> CriarAsync(ImovelUpsertDto dto, CancellationToken ct);
     Task AtualizarAsync(Guid id, ImovelUpsertDto dto, CancellationToken ct);
     Task RemoverAsync(Guid id, CancellationToken ct);
+
+    // Proprietarios
+    Task<List<ImovelProprietarioDto>> ListarProprietariosAsync(Guid imovelId, CancellationToken ct);
+    Task<ImovelProprietarioDto> AdicionarProprietarioAsync(Guid imovelId, AdicionarProprietarioRequest req, CancellationToken ct);
+    Task RemoverProprietarioAsync(Guid imovelId, Guid proprietarioId, CancellationToken ct);
 }
