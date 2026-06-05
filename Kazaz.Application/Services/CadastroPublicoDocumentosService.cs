@@ -1,4 +1,4 @@
-﻿using Kazaz.Application.DTOs;
+using Kazaz.Application.DTOs;
 using Kazaz.Application.Interfaces;
 using Kazaz.Domain.Entities;
 using Kazaz.Infrastructure.Data;
@@ -69,6 +69,7 @@ public class CadastroPublicoDocumentosService : ICadastroPublicoDocumentosServic
             PapelContrato.Fiador => PapelContratoRule.Fiador,
             PapelContrato.Vendedor => PapelContratoRule.Vendedor,
             PapelContrato.Comprador => PapelContratoRule.Comprador,
+            PapelContrato.Proprietario => PapelContratoRule.Proprietario,
             _ => PapelContratoRule.Any
         };
 

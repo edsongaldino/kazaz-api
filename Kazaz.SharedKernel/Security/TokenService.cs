@@ -29,7 +29,9 @@ public class TokenService : ITokenService
             Subject = new ClaimsIdentity(new[]
             {
                 new Claim(ClaimTypes.Name, usuario.Email),
-                new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString())
+                new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
+                new Claim(ClaimTypes.Role, usuario.Perfil?.Nome ?? ""),
+                new Claim("imobiliariaId", usuario.ImobiliariaId?.ToString() ?? "")
             }),
             Expires = DateTime.UtcNow.AddMinutes(60),
             Issuer = _config["JwtSettings:Issuer"],

@@ -1,4 +1,4 @@
-﻿namespace Kazaz.Domain.Entities;
+namespace Kazaz.Domain.Entities;
 
 public enum TipoPessoaRule
 {
@@ -22,7 +22,8 @@ public enum PapelContratoRule
     Locatario = 2,
     Fiador = 3,
     Vendedor = 10,
-    Comprador = 11
+    Comprador = 11,
+    Proprietario = 4
 }
 
 public class RegraDocumentoCadastro

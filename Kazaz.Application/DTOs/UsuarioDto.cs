@@ -8,6 +8,7 @@ public class UsuarioDto
     public string Senha { get; set; }
     public bool Ativo { get; set; }
     public Guid PerfilId { get; set; }
+    public Guid? ImobiliariaId { get; set; }
 }
 
 public class UsuarioListDto
@@ -18,6 +19,8 @@ public class UsuarioListDto
     public bool Ativo { get; set; }
     public Guid PerfilId { get; set; }
     public string? PerfilNome { get; set; } // opcional (recomendado)
+    public Guid? ImobiliariaId { get; set; }
+    public string? ImobiliariaNome { get; set; }
 }
 
 public class UsuarioCreateDto
@@ -27,6 +30,7 @@ public class UsuarioCreateDto
     public string Senha { get; set; } = default!;
     public bool Ativo { get; set; } = true;
     public Guid PerfilId { get; set; }
+    public Guid? ImobiliariaId { get; set; }
 }
 public class UsuarioUpdateDto
 {
@@ -35,6 +39,7 @@ public class UsuarioUpdateDto
     public string? Senha { get; set; }
     public bool Ativo { get; set; }
     public Guid PerfilId { get; set; }
+    public Guid? ImobiliariaId { get; set; }
 }
 
 public record UsuarioResetSenhaDto(string NovaSenha);

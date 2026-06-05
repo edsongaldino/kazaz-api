@@ -47,21 +47,14 @@ public class ImovelService : IImovelService
             if (!string.IsNullOrWhiteSpace(documento))
             {
                 q = q.Where(i =>
-                    ctx.Set<Contrato>().Any(c =>
-                        c.ImovelId == i.Id &&
-                        c.Partes.Any(p =>
-                            (
-                                p.Papel == PapelContrato.Locador ||
-                                p.Papel == PapelContrato.Vendedor
-                            )
-                            &&
-                            (
-                                p.Pessoa.PessoaFisica != null &&
-                                EF.Functions.ILike(p.Pessoa.PessoaFisica.Cpf, $"%{documento}%")
-                                ||
-                                p.Pessoa.PessoaJuridica != null &&
-                                EF.Functions.ILike(p.Pessoa.PessoaJuridica.Cnpj, $"%{documento}%")
-                            )
+                    i.Proprietarios.Any(p =>
+                        p.Ativo &&
+                        (
+                            p.Pessoa.PessoaFisica != null &&
+                            EF.Functions.ILike(p.Pessoa.PessoaFisica.Cpf, $"%{documento}%")
+                            ||
+                            p.Pessoa.PessoaJuridica != null &&
+                            EF.Functions.ILike(p.Pessoa.PessoaJuridica.Cnpj, $"%{documento}%")
                         )
                     )
                 );
@@ -103,7 +96,11 @@ public class ImovelService : IImovelService
                     i.Endereco.Cidade != null && i.Endereco.Cidade.Estado != null
                         ? i.Endereco.Cidade.Estado.Uf
                         : null
-                )
+                ),
+                i.Proprietarios.Where(p => p.Ativo).Select(p => new ImovelListProprietarioDto(
+                    p.PessoaId,
+                    p.Pessoa.PessoaFisica != null ? p.Pessoa.PessoaFisica.Nome : (p.Pessoa.PessoaJuridica != null ? (p.Pessoa.PessoaJuridica.NomeFantasia ?? p.Pessoa.PessoaJuridica.RazaoSocial) : "")
+                )).ToList()
             ))
             .ToListAsync(ct);
 

@@ -1,4 +1,6 @@
-﻿namespace Kazaz.Application.DTOs;
+namespace Kazaz.Application.DTOs;
+
+public record ImovelListProprietarioDto(Guid PessoaId, string Nome);
 
 public record ImovelListDto(
     Guid Id,
@@ -7,7 +9,8 @@ public record ImovelListDto(
     FinalidadeImovel Finalidade,
     StatusImovel Status,
     string TipoImovelNome,
-    EnderecoListDto? Endereco
+    EnderecoListDto? Endereco,
+    List<ImovelListProprietarioDto> Proprietarios
 );
 
 public record ImovelUpsertDto(

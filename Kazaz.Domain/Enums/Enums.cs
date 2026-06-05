@@ -53,7 +53,10 @@ public enum PapelContrato
 
     // Venda / Compra
     Vendedor = 10,
-    Comprador = 11
+    Comprador = 11,
+
+    // Proprietário unificado
+    Proprietario = 4
 }
 
 /// <summary>
@@ -65,3 +68,47 @@ public enum FormaGarantiaLocacao
     Fiador = 1,
     SeguroFianca = 2
 }
+
+public enum LeadStatus
+{
+    Novo = 1,
+    EmAtendimento = 2,
+    Convertido = 3,
+    Descartado = 4
+}
+
+public enum TipoLancamento
+{
+    Receita = 1, // Contas a Receber
+    Despesa = 2  // Contas a Pagar
+}
+
+public enum StatusLancamento
+{
+    Pendente = 1,
+    Pago = 2
+}
+
+public enum CargoColaborador
+{
+    Corretor = 1,
+    Gerente = 2,
+    Recepcionista = 3,
+    Administrativo = 4,
+    Diretor = 5,
+    Outro = 6
+}
+
+public enum EspecialidadePrestador
+{
+    Pintor = 1,
+    Encanador = 2,
+    Eletricista = 3,
+    Pedreiro = 4,
+    Jardineiro = 5,
+    Limpeza = 6,
+    Chaveiro = 7,
+    Gesseiro = 8,
+    Outro = 9
+}
+

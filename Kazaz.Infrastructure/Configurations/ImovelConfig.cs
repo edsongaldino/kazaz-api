@@ -1,4 +1,4 @@
-﻿using Kazaz.Domain.Entities;
+using Kazaz.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -54,5 +54,13 @@ public sealed class ImovelConfig : IEntityTypeConfiguration<Imovel>
 			.WithOne(x => x.Imovel)
 			.HasForeignKey(x => x.ImovelId)
 			.OnDelete(DeleteBehavior.Cascade);
+
+		b.Property(x => x.ImobiliariaId)
+			.HasColumnName("imobiliaria_id");
+
+		b.HasOne(x => x.Imobiliaria)
+			.WithMany()
+			.HasForeignKey(x => x.ImobiliariaId)
+			.OnDelete(DeleteBehavior.Restrict);
 	}
 }

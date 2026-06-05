@@ -1,6 +1,10 @@
+using System;
+using System.Collections.Generic;
+using Kazaz.Domain.Interfaces;
+
 namespace Kazaz.Domain.Entities;
 
-public class Contrato
+public class Contrato : IMultiTenant
 {
     public Guid Id { get; set; }
 
@@ -16,7 +20,7 @@ public class Contrato
     public string Numero { get; set; } = null!; // unique, ex: 2026-000123
 
     /// <summary>
-    /// Forma de garantia do locatrio (apenas para Locação).
+    /// Forma de garantia do locatário (apenas para Locação).
     /// Define se o contrato tem Fiador ou Seguro Fiança.
     /// </summary>
     public FormaGarantiaLocacao? FormaGarantia { get; set; }
@@ -30,4 +34,7 @@ public class Contrato
     public DateTime CriadoEm { get; set; } = DateTime.UtcNow;
 
     public ICollection<ContratoParte> Partes { get; set; } = new List<ContratoParte>();
+
+    public Guid? ImobiliariaId { get; set; }
+    public Imobiliaria? Imobiliaria { get; set; }
 }

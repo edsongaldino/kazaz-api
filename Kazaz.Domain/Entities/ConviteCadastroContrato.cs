@@ -1,4 +1,8 @@
-﻿namespace Kazaz.Domain.Entities;
+using System;
+using System.Collections.Generic;
+using Kazaz.Domain.Interfaces;
+
+namespace Kazaz.Domain.Entities;
 
 public enum StatusConviteCadastro
 {
@@ -12,7 +16,7 @@ public enum StatusConviteCadastro
     Cancelado = 8
 }
 
-public class ConviteCadastroContrato
+public class ConviteCadastroContrato : IMultiTenant
 {
     public Guid Id { get; set; }
 
@@ -36,4 +40,7 @@ public class ConviteCadastroContrato
     public DateTime? UsadoEm { get; set; }
 
     public ICollection<AnaliseConvite> Analises { get; set; } = new List<AnaliseConvite>();
+
+    public Guid? ImobiliariaId { get; set; }
+    public Imobiliaria? Imobiliaria { get; set; }
 }

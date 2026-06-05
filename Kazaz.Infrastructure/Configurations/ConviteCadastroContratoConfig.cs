@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Kazaz.Domain.Entities;
 
@@ -32,5 +32,13 @@ public class ConviteCadastroContratoConfig : IEntityTypeConfiguration<ConviteCad
             .WithMany()
             .HasForeignKey(x => x.PessoaId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        b.Property(x => x.ImobiliariaId)
+            .HasColumnName("imobiliaria_id");
+
+        b.HasOne(x => x.Imobiliaria)
+            .WithMany()
+            .HasForeignKey(x => x.ImobiliariaId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

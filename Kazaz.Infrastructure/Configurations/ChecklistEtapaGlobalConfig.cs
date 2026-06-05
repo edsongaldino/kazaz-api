@@ -16,5 +16,11 @@ public class ChecklistEtapaGlobalConfig : IEntityTypeConfiguration<ChecklistEtap
         b.Property(x => x.Label).HasColumnName("label").IsRequired().HasMaxLength(250);
         b.Property(x => x.TipoField).HasColumnName("tipo_field").IsRequired().HasMaxLength(50);
         b.Property(x => x.Card).HasColumnName("card").IsRequired().HasMaxLength(150);
+
+        b.Property(x => x.ImobiliariaId).HasColumnName("imobiliaria_id");
+        b.HasOne(x => x.Imobiliaria)
+            .WithMany()
+            .HasForeignKey(x => x.ImobiliariaId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

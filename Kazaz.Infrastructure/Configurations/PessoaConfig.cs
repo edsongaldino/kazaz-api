@@ -1,4 +1,4 @@
-﻿using Kazaz.Domain.Entities;
+using Kazaz.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -31,5 +31,13 @@ public sealed class PessoaConfig : IEntityTypeConfiguration<Pessoa>
                 .WithMany(o => o.Clientes)
                 .HasForeignKey(x => x.OrigemId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+        b.Property(x => x.ImobiliariaId)
+            .HasColumnName("imobiliaria_id");
+
+        b.HasOne(x => x.Imobiliaria)
+            .WithMany()
+            .HasForeignKey(x => x.ImobiliariaId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -1,4 +1,4 @@
-﻿using Kazaz.Application.DTOs;
+using Kazaz.Application.DTOs;
 using Kazaz.Application.Interfaces;
 using Kazaz.Domain.Entities;
 using Kazaz.Infrastructure.Data;
@@ -57,7 +57,9 @@ public class PessoaService(ApplicationDbContext ctx) : IPessoaService
             EhLocatario = p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Locatario),
             EhFiador = p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Fiador),
             EhVendedor = p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Vendedor),
-            EhComprador = p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Comprador)
+            EhComprador = p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Comprador),
+            EhProprietario = p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Locador || c.Papel == PapelContrato.Vendedor || c.Papel == PapelContrato.Proprietario) ||
+                             ctx.Set<ImovelProprietario>().Any(ip => ip.PessoaId == p.PessoaId && ip.Ativo)
         });
 
         // =====================
@@ -85,7 +87,7 @@ public class PessoaService(ApplicationDbContext ctx) : IPessoaService
             Tipo = "JURIDICA", // Juridica
             Documento = p.Cnpj,
             Nascimento = (DateOnly?)null,
-            RazaoSocial = p.RazaoSocial,
+            RazaoSocial = (string?)p.RazaoSocial,
             EnderecoId = p.Pessoa.EnderecoId,
             OrigemId = p.Pessoa.OrigemId,
 
@@ -98,7 +100,9 @@ public class PessoaService(ApplicationDbContext ctx) : IPessoaService
             EhLocatario = p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Locatario),
             EhFiador = p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Fiador),
             EhVendedor = p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Vendedor),
-            EhComprador = p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Comprador)
+            EhComprador = p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Comprador),
+            EhProprietario = p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Locador || c.Papel == PapelContrato.Vendedor || c.Papel == PapelContrato.Proprietario) ||
+                             ctx.Set<ImovelProprietario>().Any(ip => ip.PessoaId == p.PessoaId && ip.Ativo)
         });
 
         var unionQ = pfProj.Concat(pjProj);
@@ -123,7 +127,8 @@ public class PessoaService(ApplicationDbContext ctx) : IPessoaService
                 (filtro.Papel == (int)PapelContrato.Locatario && x.EhLocatario) ||
                 (filtro.Papel == (int)PapelContrato.Fiador && x.EhFiador) ||
                 (filtro.Papel == (int)PapelContrato.Vendedor && x.EhVendedor) ||
-                (filtro.Papel == (int)PapelContrato.Comprador && x.EhComprador)
+                (filtro.Papel == (int)PapelContrato.Comprador && x.EhComprador) ||
+                (filtro.Papel == (int)PapelContrato.Proprietario && x.EhProprietario)
             );
         }
 
@@ -147,7 +152,8 @@ public class PessoaService(ApplicationDbContext ctx) : IPessoaService
                 x.EhLocatario,
                 x.EhFiador,
                 x.EhVendedor,
-                x.EhComprador
+                x.EhComprador,
+                x.EhProprietario
             ))
             .ToListAsync(ct);
 

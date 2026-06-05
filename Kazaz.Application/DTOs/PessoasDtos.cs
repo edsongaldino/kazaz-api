@@ -16,7 +16,8 @@ public record PessoaListDto(
     bool EhLocatario,
     bool EhFiador,
     bool EhVendedor,
-    bool EhComprador
+    bool EhComprador,
+    bool EhProprietario
 );
 
 // PF

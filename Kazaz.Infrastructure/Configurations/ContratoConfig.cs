@@ -37,5 +37,13 @@ public class ContratoConfig : IEntityTypeConfiguration<Contrato>
         b.HasMany(x => x.Partes)
             .WithOne(x => x.Contrato)
             .HasForeignKey(x => x.ContratoId);
+
+        b.Property(x => x.ImobiliariaId)
+            .HasColumnName("imobiliaria_id");
+
+        b.HasOne(x => x.Imobiliaria)
+            .WithMany()
+            .HasForeignKey(x => x.ImobiliariaId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

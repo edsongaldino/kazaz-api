@@ -1,4 +1,4 @@
-﻿using Kazaz.Application.DTOs;
+using Kazaz.Application.DTOs;
 using Kazaz.Application.Interfaces;
 using Kazaz.Domain.Entities;
 using Kazaz.Infrastructure.Data;
@@ -24,11 +24,12 @@ public class DashboardService : IDashboardService
         return new DashboardResumoDto
         {
             TotalImoveis = await imoveis.CountAsync(ct),
-            TotalClientes = await ctx.Set<DadosPessoaFisica>().CountAsync(ct) + await ctx.Set<DadosPessoaJuridica>().CountAsync(ct),
+            TotalClientes = await pessoas.CountAsync(ct),
             TotalContratos = await contratos.CountAsync(ct),
-
             TotalConvites = await contratos
                 .CountAsync(c => c.Status == StatusContrato.Rascunho, ct),
+            TotalImobiliarias = await ctx.Set<Imobiliaria>().CountAsync(ct),
+            TotalUsuarios = await ctx.Set<Usuario>().CountAsync(ct),
 
             ImoveisAtivos = await imoveis.CountAsync(x => (int)x.Status == 1, ct),
             ImoveisEmNegociacao = await imoveis.CountAsync(x => (int)x.Status == 3, ct),

@@ -68,7 +68,9 @@ public class UsuarioService : IUsuarioService
                 Nome = u.Nome,
                 PerfilId = u.PerfilId,
                 Ativo = u.Ativo,
-                PerfilNome = u.Perfil.Nome
+                PerfilNome = u.Perfil.Nome,
+                ImobiliariaId = u.ImobiliariaId,
+                ImobiliariaNome = u.Imobiliaria != null ? u.Imobiliaria.NomeFantasia : null
             })
             .ToListAsync(ct);
 
@@ -87,7 +89,9 @@ public class UsuarioService : IUsuarioService
                 Nome = u.Nome,
                 PerfilId = u.PerfilId,
                 Ativo = u.Ativo,
-                PerfilNome = u.Perfil.Nome
+                PerfilNome = u.Perfil.Nome,
+                ImobiliariaId = u.ImobiliariaId,
+                ImobiliariaNome = u.Imobiliaria != null ? u.Imobiliaria.NomeFantasia : null
             })
             .ToListAsync();
     }
@@ -104,12 +108,14 @@ public class UsuarioService : IUsuarioService
                 Email = u.Email,
                 Nome = u.Nome,
                 Ativo = u.Ativo,
-                PerfilId = u.PerfilId
+                PerfilId = u.PerfilId,
+                ImobiliariaId = u.ImobiliariaId
             };
     }
 
     public async Task<UsuarioDto> CriarAsync(UsuarioDto dto)
     {
+        var idAdminSistema = new Guid("96030c6a-685b-439f-a0bb-dcdb4e05bf54");
         var u = new Usuario
         {
             Id = Guid.NewGuid(),
@@ -117,12 +123,14 @@ public class UsuarioService : IUsuarioService
             Email = dto.Email,
             Senha = PasswordHasher.Hash(dto.Senha),
             Ativo = dto.Ativo,
-            PerfilId = dto.PerfilId
+            PerfilId = dto.PerfilId,
+            ImobiliariaId = dto.PerfilId == idAdminSistema ? null : dto.ImobiliariaId
         };
 
         await _repo.CriarAsync(u);
 
         dto.Id = u.Id;
+        dto.ImobiliariaId = u.ImobiliariaId;
         return dto;
     }
 
@@ -131,10 +139,13 @@ public class UsuarioService : IUsuarioService
         var u = await _repo.ObterPorIdAsync(id);
         if (u == null) return null;
 
+        var idAdminSistema = new Guid("96030c6a-685b-439f-a0bb-dcdb4e05bf54");
+
         u.Email = dto.Email;
         u.Nome = dto.Nome;
         u.Ativo = dto.Ativo;
         u.PerfilId = dto.PerfilId;
+        u.ImobiliariaId = dto.PerfilId == idAdminSistema ? null : dto.ImobiliariaId;
 
         if (!string.IsNullOrWhiteSpace(dto.Senha))
         {
@@ -143,6 +154,7 @@ public class UsuarioService : IUsuarioService
 
         await _repo.AtualizarAsync(u);
 
+        dto.ImobiliariaId = u.ImobiliariaId;
         return dto;
     }
 

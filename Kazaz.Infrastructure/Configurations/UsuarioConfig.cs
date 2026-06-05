@@ -39,5 +39,12 @@ public class UsuarioConfi : IEntityTypeConfiguration<Usuario>
             .OnDelete(DeleteBehavior.Restrict);
 
         b.Property(u => u.PerfilId).HasColumnName("perfil_id");
+
+        b.HasOne(u => u.Imobiliaria)
+            .WithMany()
+            .HasForeignKey(u => u.ImobiliariaId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        b.Property(u => u.ImobiliariaId).HasColumnName("imobiliaria_id");
     }
 }

@@ -249,6 +249,10 @@ namespace Kazaz.Infrastructure.Migrations
                         .HasColumnType("character varying(150)")
                         .HasColumnName("card");
 
+                    b.Property<Guid?>("ImobiliariaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("imobiliaria_id");
+
                     b.Property<string>("Label")
                         .IsRequired()
                         .HasMaxLength(250)
@@ -269,6 +273,9 @@ namespace Kazaz.Infrastructure.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_checklist_etapas_globais");
+
+                    b.HasIndex("ImobiliariaId")
+                        .HasDatabaseName("ix_checklist_etapas_globais_imobiliaria_id");
 
                     b.ToTable("checklist_etapas_globais", (string)null);
                 });
@@ -307,6 +314,114 @@ namespace Kazaz.Infrastructure.Migrations
                         .HasDatabaseName("ix_cidades_estado_id_nome");
 
                     b.ToTable("cidades", (string)null);
+                });
+
+            modelBuilder.Entity("Kazaz.Domain.Entities.Colaborador", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Ativo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("ativo");
+
+                    b.Property<string>("Cargo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("cargo");
+
+                    b.Property<string>("Cpf")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("cpf");
+
+                    b.Property<DateTime?>("DataAdmissao")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("data_admissao");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("email");
+
+                    b.Property<Guid?>("ImobiliariaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("imobiliaria_id");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("nome");
+
+                    b.Property<string>("Telefone")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("telefone");
+
+                    b.Property<Guid?>("UsuarioId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("usuario_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_colaboradores");
+
+                    b.HasIndex("Cpf")
+                        .IsUnique()
+                        .HasDatabaseName("ix_colaboradores_cpf");
+
+                    b.HasIndex("ImobiliariaId")
+                        .HasDatabaseName("ix_colaboradores_imobiliaria_id");
+
+                    b.HasIndex("UsuarioId")
+                        .HasDatabaseName("ix_colaboradores_usuario_id");
+
+                    b.ToTable("colaboradores", (string)null);
+                });
+
+            modelBuilder.Entity("Kazaz.Domain.Entities.ColaboradorDocumento", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ColaboradorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("colaborador_id");
+
+                    b.Property<DateTime>("DataAnexo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("data_anexo")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<Guid>("DocumentoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("documento_id");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("nome");
+
+                    b.HasKey("Id")
+                        .HasName("pk_colaboradores_documentos");
+
+                    b.HasIndex("ColaboradorId")
+                        .HasDatabaseName("ix_colaboradores_documentos_colaborador_id");
+
+                    b.HasIndex("DocumentoId")
+                        .HasDatabaseName("ix_colaboradores_documentos_documento_id");
+
+                    b.ToTable("colaboradores_documentos", (string)null);
                 });
 
             modelBuilder.Entity("Kazaz.Domain.Entities.Conjuge", b =>
@@ -443,6 +558,10 @@ namespace Kazaz.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("forma_garantia");
 
+                    b.Property<Guid?>("ImobiliariaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("imobiliaria_id");
+
                     b.Property<Guid>("ImovelId")
                         .HasColumnType("uuid")
                         .HasColumnName("imovel_id");
@@ -467,6 +586,9 @@ namespace Kazaz.Infrastructure.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_contratos");
+
+                    b.HasIndex("ImobiliariaId")
+                        .HasDatabaseName("ix_contratos_imobiliaria_id");
 
                     b.HasIndex("ImovelId")
                         .HasDatabaseName("ix_contratos_imovel_id");
@@ -669,6 +791,10 @@ namespace Kazaz.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expira_em");
 
+                    b.Property<Guid?>("ImobiliariaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("imobiliaria_id");
+
                     b.Property<int>("Papel")
                         .HasColumnType("integer")
                         .HasColumnName("papel");
@@ -700,6 +826,9 @@ namespace Kazaz.Infrastructure.Migrations
 
                     b.HasIndex("ContratoId")
                         .HasDatabaseName("ix_convites_cadastro_contrato_contrato_id");
+
+                    b.HasIndex("ImobiliariaId")
+                        .HasDatabaseName("ix_convites_cadastro_contrato_imobiliaria_id");
 
                     b.HasIndex("PessoaId")
                         .HasDatabaseName("ix_convites_cadastro_contrato_pessoa_id");
@@ -892,6 +1021,81 @@ namespace Kazaz.Infrastructure.Migrations
                     b.ToTable("documentos", (string)null);
                 });
 
+            modelBuilder.Entity("Kazaz.Domain.Entities.FinanceiroLancamento", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Categoria")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("categoria");
+
+                    b.Property<Guid?>("ClienteId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cliente_id");
+
+                    b.Property<Guid?>("ContratoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contrato_id");
+
+                    b.Property<DateTime?>("DataPagamento")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("data_pagamento");
+
+                    b.Property<DateTime>("DataVencimento")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("data_vencimento");
+
+                    b.Property<string>("Descricao")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("descricao");
+
+                    b.Property<Guid?>("ImobiliariaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("imobiliaria_id");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<int>("Tipo")
+                        .HasColumnType("integer")
+                        .HasColumnName("tipo");
+
+                    b.Property<decimal>("Valor")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("valor");
+
+                    b.HasKey("Id")
+                        .HasName("pk_financeiro_lancamentos");
+
+                    b.HasIndex("ClienteId")
+                        .HasDatabaseName("ix_financeiro_lancamentos_cliente_id");
+
+                    b.HasIndex("ContratoId")
+                        .HasDatabaseName("ix_financeiro_lancamentos_contrato_id");
+
+                    b.HasIndex("DataVencimento")
+                        .HasDatabaseName("ix_financeiro_lancamentos_data_vencimento");
+
+                    b.HasIndex("ImobiliariaId")
+                        .HasDatabaseName("ix_financeiro_lancamentos_imobiliaria_id");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_financeiro_lancamentos_status");
+
+                    b.HasIndex("Tipo")
+                        .HasDatabaseName("ix_financeiro_lancamentos_tipo");
+
+                    b.ToTable("financeiro_lancamentos", (string)null);
+                });
+
             modelBuilder.Entity("Kazaz.Domain.Entities.Foto", b =>
                 {
                     b.Property<Guid>("Id")
@@ -923,6 +1127,72 @@ namespace Kazaz.Infrastructure.Migrations
                     b.ToTable("fotos", (string)null);
                 });
 
+            modelBuilder.Entity("Kazaz.Domain.Entities.Imobiliaria", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Cnpj")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("cnpj");
+
+                    b.Property<string>("Creci")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("creci");
+
+                    b.Property<DateTime?>("DataFundacao")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("data_fundacao");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("email");
+
+                    b.Property<Guid?>("EnderecoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("endereco_id");
+
+                    b.Property<string>("LogoUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("logo_url");
+
+                    b.Property<string>("NomeFantasia")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("nome_fantasia");
+
+                    b.Property<string>("RazaoSocial")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("razao_social");
+
+                    b.Property<string>("Telefone")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("telefone");
+
+                    b.HasKey("Id")
+                        .HasName("pk_imobiliarias");
+
+                    b.HasIndex("Cnpj")
+                        .IsUnique()
+                        .HasDatabaseName("ix_imobiliarias_cnpj");
+
+                    b.HasIndex("EnderecoId")
+                        .HasDatabaseName("ix_imobiliarias_endereco_id");
+
+                    b.ToTable("imobiliarias", (string)null);
+                });
+
             modelBuilder.Entity("Kazaz.Domain.Entities.Imovel", b =>
                 {
                     b.Property<Guid>("Id")
@@ -943,6 +1213,10 @@ namespace Kazaz.Infrastructure.Migrations
                     b.Property<int>("Finalidade")
                         .HasColumnType("integer")
                         .HasColumnName("finalidade");
+
+                    b.Property<Guid?>("ImobiliariaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("imobiliaria_id");
 
                     b.Property<string>("Observacoes")
                         .HasColumnType("text")
@@ -969,6 +1243,9 @@ namespace Kazaz.Infrastructure.Migrations
 
                     b.HasIndex("EnderecoId")
                         .HasDatabaseName("ix_imoveis_endereco_id");
+
+                    b.HasIndex("ImobiliariaId")
+                        .HasDatabaseName("ix_imoveis_imobiliaria_id");
 
                     b.HasIndex("TipoImovelId")
                         .HasDatabaseName("ix_imoveis_tipo_imovel_id");
@@ -1123,6 +1400,82 @@ namespace Kazaz.Infrastructure.Migrations
                     b.ToTable("imovel_proprietarios", (string)null);
                 });
 
+            modelBuilder.Entity("Kazaz.Domain.Entities.Lead", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("DataAtualizacao")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("data_atualizacao");
+
+                    b.Property<DateTime>("DataCriacao")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("data_criacao");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("email");
+
+                    b.Property<Guid?>("ImobiliariaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("imobiliaria_id");
+
+                    b.Property<Guid?>("ImovelId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("imovel_id");
+
+                    b.Property<string>("Mensagem")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("mensagem");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("nome");
+
+                    b.Property<Guid?>("OrigemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("origem_id");
+
+                    b.Property<Guid?>("PessoaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("pessoa_id");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<string>("Telefone")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("telefone");
+
+                    b.HasKey("Id")
+                        .HasName("pk_leads");
+
+                    b.HasIndex("ImobiliariaId")
+                        .HasDatabaseName("ix_leads_imobiliaria_id");
+
+                    b.HasIndex("ImovelId")
+                        .HasDatabaseName("ix_leads_imovel_id");
+
+                    b.HasIndex("OrigemId")
+                        .HasDatabaseName("ix_leads_origem_id");
+
+                    b.HasIndex("PessoaId")
+                        .HasDatabaseName("ix_leads_pessoa_id");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_leads_status");
+
+                    b.ToTable("leads", (string)null);
+                });
+
             modelBuilder.Entity("Kazaz.Domain.Entities.Origem", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1183,6 +1536,10 @@ namespace Kazaz.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("endereco_id");
 
+                    b.Property<Guid?>("ImobiliariaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("imobiliaria_id");
+
                     b.Property<Guid?>("OrigemId")
                         .HasColumnType("uuid")
                         .HasColumnName("origem_id");
@@ -1192,6 +1549,9 @@ namespace Kazaz.Infrastructure.Migrations
 
                     b.HasIndex("EnderecoId")
                         .HasDatabaseName("ix_pessoas_endereco_id");
+
+                    b.HasIndex("ImobiliariaId")
+                        .HasDatabaseName("ix_pessoas_imobiliaria_id");
 
                     b.HasIndex("OrigemId")
                         .HasDatabaseName("ix_pessoas_origem_id");
@@ -1244,6 +1604,75 @@ namespace Kazaz.Infrastructure.Migrations
                         .HasDatabaseName("UX_pessoas_documentos_unique");
 
                     b.ToTable("pessoas_documentos", (string)null);
+                });
+
+            modelBuilder.Entity("Kazaz.Domain.Entities.PrestadorServico", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Ativo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("ativo");
+
+                    b.Property<string>("CpfCnpj")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("cpf_cnpj");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("email");
+
+                    b.Property<Guid?>("EnderecoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("endereco_id");
+
+                    b.Property<string>("Especialidade")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("especialidade");
+
+                    b.Property<Guid?>("ImobiliariaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("imobiliaria_id");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("nome");
+
+                    b.Property<string>("Observacoes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("observacoes");
+
+                    b.Property<string>("Telefone")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("telefone");
+
+                    b.HasKey("Id")
+                        .HasName("pk_prestadores_servicos");
+
+                    b.HasIndex("EnderecoId")
+                        .HasDatabaseName("ix_prestadores_servicos_endereco_id");
+
+                    b.HasIndex("Especialidade")
+                        .HasDatabaseName("ix_prestadores_servicos_especialidade");
+
+                    b.HasIndex("ImobiliariaId")
+                        .HasDatabaseName("ix_prestadores_servicos_imobiliaria_id");
+
+                    b.ToTable("prestadores_servicos", (string)null);
                 });
 
             modelBuilder.Entity("Kazaz.Domain.Entities.RegraDocumentoCadastro", b =>
@@ -1452,6 +1881,10 @@ namespace Kazaz.Infrastructure.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("email");
 
+                    b.Property<Guid?>("ImobiliariaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("imobiliaria_id");
+
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -1474,6 +1907,9 @@ namespace Kazaz.Infrastructure.Migrations
                     b.HasIndex("Email")
                         .IsUnique()
                         .HasDatabaseName("ix_usuarios_email");
+
+                    b.HasIndex("ImobiliariaId")
+                        .HasDatabaseName("ix_usuarios_imobiliaria_id");
 
                     b.HasIndex("PerfilId")
                         .HasDatabaseName("ix_usuarios_perfil_id");
@@ -1534,6 +1970,17 @@ namespace Kazaz.Infrastructure.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("Kazaz.Domain.Entities.ChecklistEtapaGlobal", b =>
+                {
+                    b.HasOne("Kazaz.Domain.Entities.Imobiliaria", "Imobiliaria")
+                        .WithMany()
+                        .HasForeignKey("ImobiliariaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_checklist_etapas_globais_imobiliarias_imobiliaria_id");
+
+                    b.Navigation("Imobiliaria");
+                });
+
             modelBuilder.Entity("Kazaz.Domain.Entities.Cidade", b =>
                 {
                     b.HasOne("Estado", "Estado")
@@ -1544,6 +1991,46 @@ namespace Kazaz.Infrastructure.Migrations
                         .HasConstraintName("fk_cidades_estados_estado_id");
 
                     b.Navigation("Estado");
+                });
+
+            modelBuilder.Entity("Kazaz.Domain.Entities.Colaborador", b =>
+                {
+                    b.HasOne("Kazaz.Domain.Entities.Imobiliaria", "Imobiliaria")
+                        .WithMany()
+                        .HasForeignKey("ImobiliariaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_colaboradores_imobiliarias_imobiliaria_id");
+
+                    b.HasOne("Kazaz.Domain.Entities.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_colaboradores_usuarios_usuario_id");
+
+                    b.Navigation("Imobiliaria");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("Kazaz.Domain.Entities.ColaboradorDocumento", b =>
+                {
+                    b.HasOne("Kazaz.Domain.Entities.Colaborador", "Colaborador")
+                        .WithMany("Documentos")
+                        .HasForeignKey("ColaboradorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_colaboradores_documentos_colaboradores_colaborador_id");
+
+                    b.HasOne("Kazaz.Domain.Entities.Documento", "Documento")
+                        .WithMany()
+                        .HasForeignKey("DocumentoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_colaboradores_documentos_documentos_documento_id");
+
+                    b.Navigation("Colaborador");
+
+                    b.Navigation("Documento");
                 });
 
             modelBuilder.Entity("Kazaz.Domain.Entities.Conjuge", b =>
@@ -1572,12 +2059,20 @@ namespace Kazaz.Infrastructure.Migrations
 
             modelBuilder.Entity("Kazaz.Domain.Entities.Contrato", b =>
                 {
+                    b.HasOne("Kazaz.Domain.Entities.Imobiliaria", "Imobiliaria")
+                        .WithMany()
+                        .HasForeignKey("ImobiliariaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_contratos_imobiliarias_imobiliaria_id");
+
                     b.HasOne("Kazaz.Domain.Entities.Imovel", "Imovel")
                         .WithMany()
                         .HasForeignKey("ImovelId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_contratos_imoveis_imovel_id");
+
+                    b.Navigation("Imobiliaria");
 
                     b.Navigation("Imovel");
                 });
@@ -1615,6 +2110,12 @@ namespace Kazaz.Infrastructure.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_convites_cadastro_contrato_contratos_contrato_id");
 
+                    b.HasOne("Kazaz.Domain.Entities.Imobiliaria", "Imobiliaria")
+                        .WithMany()
+                        .HasForeignKey("ImobiliariaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_convites_cadastro_contrato_imobiliarias_imobiliaria_id");
+
                     b.HasOne("Kazaz.Domain.Entities.Pessoa", "Pessoa")
                         .WithMany()
                         .HasForeignKey("PessoaId")
@@ -1622,6 +2123,8 @@ namespace Kazaz.Infrastructure.Migrations
                         .HasConstraintName("fk_convites_cadastro_contrato_pessoas_pessoa_id");
 
                     b.Navigation("Contrato");
+
+                    b.Navigation("Imobiliaria");
 
                     b.Navigation("Pessoa");
                 });
@@ -1662,6 +2165,33 @@ namespace Kazaz.Infrastructure.Migrations
                     b.Navigation("Pessoa");
                 });
 
+            modelBuilder.Entity("Kazaz.Domain.Entities.FinanceiroLancamento", b =>
+                {
+                    b.HasOne("Kazaz.Domain.Entities.Pessoa", "Cliente")
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_financeiro_lancamentos_pessoas_cliente_id");
+
+                    b.HasOne("Kazaz.Domain.Entities.Contrato", "Contrato")
+                        .WithMany()
+                        .HasForeignKey("ContratoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_financeiro_lancamentos_contratos_contrato_id");
+
+                    b.HasOne("Kazaz.Domain.Entities.Imobiliaria", "Imobiliaria")
+                        .WithMany()
+                        .HasForeignKey("ImobiliariaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_financeiro_lancamentos_imobiliarias_imobiliaria_id");
+
+                    b.Navigation("Cliente");
+
+                    b.Navigation("Contrato");
+
+                    b.Navigation("Imobiliaria");
+                });
+
             modelBuilder.Entity("Kazaz.Domain.Entities.Foto", b =>
                 {
                     b.HasOne("Kazaz.Domain.Entities.Imovel", "Imovel")
@@ -1674,6 +2204,17 @@ namespace Kazaz.Infrastructure.Migrations
                     b.Navigation("Imovel");
                 });
 
+            modelBuilder.Entity("Kazaz.Domain.Entities.Imobiliaria", b =>
+                {
+                    b.HasOne("Endereco", "Endereco")
+                        .WithMany()
+                        .HasForeignKey("EnderecoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_imobiliarias_enderecos_endereco_id");
+
+                    b.Navigation("Endereco");
+                });
+
             modelBuilder.Entity("Kazaz.Domain.Entities.Imovel", b =>
                 {
                     b.HasOne("Endereco", "Endereco")
@@ -1683,6 +2224,12 @@ namespace Kazaz.Infrastructure.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_imoveis_enderecos_endereco_id");
 
+                    b.HasOne("Kazaz.Domain.Entities.Imobiliaria", "Imobiliaria")
+                        .WithMany()
+                        .HasForeignKey("ImobiliariaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_imoveis_imobiliarias_imobiliaria_id");
+
                     b.HasOne("Kazaz.Domain.Entities.TipoImovel", "TipoImovel")
                         .WithMany("Imoveis")
                         .HasForeignKey("TipoImovelId")
@@ -1691,6 +2238,8 @@ namespace Kazaz.Infrastructure.Migrations
                         .HasConstraintName("fk_imoveis_tipo_imovel_tipo_imovel_id");
 
                     b.Navigation("Endereco");
+
+                    b.Navigation("Imobiliaria");
 
                     b.Navigation("TipoImovel");
                 });
@@ -1772,6 +2321,41 @@ namespace Kazaz.Infrastructure.Migrations
                     b.Navigation("Pessoa");
                 });
 
+            modelBuilder.Entity("Kazaz.Domain.Entities.Lead", b =>
+                {
+                    b.HasOne("Kazaz.Domain.Entities.Imobiliaria", "Imobiliaria")
+                        .WithMany()
+                        .HasForeignKey("ImobiliariaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_leads_imobiliarias_imobiliaria_id");
+
+                    b.HasOne("Kazaz.Domain.Entities.Imovel", "Imovel")
+                        .WithMany()
+                        .HasForeignKey("ImovelId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_leads_imoveis_imovel_id");
+
+                    b.HasOne("Kazaz.Domain.Entities.Origem", "Origem")
+                        .WithMany()
+                        .HasForeignKey("OrigemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_leads_origens_origem_id");
+
+                    b.HasOne("Kazaz.Domain.Entities.Pessoa", "Pessoa")
+                        .WithMany()
+                        .HasForeignKey("PessoaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_leads_pessoas_pessoa_id");
+
+                    b.Navigation("Imobiliaria");
+
+                    b.Navigation("Imovel");
+
+                    b.Navigation("Origem");
+
+                    b.Navigation("Pessoa");
+                });
+
             modelBuilder.Entity("Kazaz.Domain.Entities.Pessoa", b =>
                 {
                     b.HasOne("Endereco", "Endereco")
@@ -1780,6 +2364,12 @@ namespace Kazaz.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("fk_pessoas_enderecos_endereco_id");
 
+                    b.HasOne("Kazaz.Domain.Entities.Imobiliaria", "Imobiliaria")
+                        .WithMany()
+                        .HasForeignKey("ImobiliariaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_pessoas_imobiliarias_imobiliaria_id");
+
                     b.HasOne("Kazaz.Domain.Entities.Origem", "Origem")
                         .WithMany("Clientes")
                         .HasForeignKey("OrigemId")
@@ -1787,6 +2377,8 @@ namespace Kazaz.Infrastructure.Migrations
                         .HasConstraintName("fk_pessoas_origens_origem_id");
 
                     b.Navigation("Endereco");
+
+                    b.Navigation("Imobiliaria");
 
                     b.Navigation("Origem");
                 });
@@ -1819,6 +2411,25 @@ namespace Kazaz.Infrastructure.Migrations
                     b.Navigation("Pessoa");
 
                     b.Navigation("Tipo");
+                });
+
+            modelBuilder.Entity("Kazaz.Domain.Entities.PrestadorServico", b =>
+                {
+                    b.HasOne("Endereco", "Endereco")
+                        .WithMany()
+                        .HasForeignKey("EnderecoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_prestadores_servicos_enderecos_endereco_id");
+
+                    b.HasOne("Kazaz.Domain.Entities.Imobiliaria", "Imobiliaria")
+                        .WithMany()
+                        .HasForeignKey("ImobiliariaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_prestadores_servicos_imobiliarias_imobiliaria_id");
+
+                    b.Navigation("Endereco");
+
+                    b.Navigation("Imobiliaria");
                 });
 
             modelBuilder.Entity("Kazaz.Domain.Entities.RegraDocumentoCadastro", b =>
@@ -1856,12 +2467,20 @@ namespace Kazaz.Infrastructure.Migrations
 
             modelBuilder.Entity("Kazaz.Domain.Entities.Usuario", b =>
                 {
+                    b.HasOne("Kazaz.Domain.Entities.Imobiliaria", "Imobiliaria")
+                        .WithMany()
+                        .HasForeignKey("ImobiliariaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_usuarios_imobiliarias_imobiliaria_id");
+
                     b.HasOne("Kazaz.Domain.Entities.Perfil", "Perfil")
                         .WithMany("Usuarios")
                         .HasForeignKey("PerfilId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_usuarios_perfis_perfil_id");
+
+                    b.Navigation("Imobiliaria");
 
                     b.Navigation("Perfil");
                 });
@@ -1874,6 +2493,11 @@ namespace Kazaz.Infrastructure.Migrations
             modelBuilder.Entity("Kazaz.Domain.Entities.Caracteristica", b =>
                 {
                     b.Navigation("ImoveisCaracteristicas");
+                });
+
+            modelBuilder.Entity("Kazaz.Domain.Entities.Colaborador", b =>
+                {
+                    b.Navigation("Documentos");
                 });
 
             modelBuilder.Entity("Kazaz.Domain.Entities.Contrato", b =>

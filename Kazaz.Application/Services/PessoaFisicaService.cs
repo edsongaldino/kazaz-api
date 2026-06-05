@@ -1,4 +1,4 @@
-﻿using Kazaz.Application.DTOs;
+using Kazaz.Application.DTOs;
 using Kazaz.Application.Interfaces;
 using Kazaz.Domain.Entities;
 using Kazaz.Infrastructure.Data;
@@ -108,7 +108,9 @@ public class PessoaFisicaService(ApplicationDbContext ctx) : IPessoaFisicaServic
                 p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Locatario),
                 p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Fiador),
                 p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Vendedor),
-                p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Comprador)
+                p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Comprador),
+                p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Locador || c.Papel == PapelContrato.Vendedor || c.Papel == PapelContrato.Proprietario) ||
+                ctx.Set<ImovelProprietario>().Any(ip => ip.PessoaId == p.PessoaId && ip.Ativo)
             ))
             .ToListAsync(ct);
 
@@ -137,7 +139,9 @@ public class PessoaFisicaService(ApplicationDbContext ctx) : IPessoaFisicaServic
                 p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Locatario),
                 p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Fiador),
                 p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Vendedor),
-                p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Comprador)
+                p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Comprador),
+                p.Pessoa.Contratos.Any(c => c.Papel == PapelContrato.Locador || c.Papel == PapelContrato.Vendedor || c.Papel == PapelContrato.Proprietario) ||
+                ctx.Set<ImovelProprietario>().Any(ip => ip.PessoaId == p.PessoaId && ip.Ativo)
             ))
             .FirstOrDefaultAsync(ct);
     }

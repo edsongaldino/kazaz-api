@@ -128,7 +128,7 @@ public class ContratoConviteService : IContratoConviteService
 
     /// <summary>
     /// Determina quais papeis de convite devem ser gerados conforme tipo e forma de garantia.
-    /// Locador (proprietario) nao e mais gerado como convite.
+    /// O proprietário é incluído na geração de convites como PapelContrato.Proprietario.
     /// </summary>
     private static IReadOnlyList<PapelContrato> DeterminarPapeis(
         TipoContrato tipo,
@@ -137,11 +137,11 @@ public class ContratoConviteService : IContratoConviteService
         return tipo switch
         {
             TipoContrato.Locacao => formaGarantia == FormaGarantiaLocacao.Fiador
-                ? new[] { PapelContrato.Locatario, PapelContrato.Fiador }
-                : new[] { PapelContrato.Locatario },
+                ? new[] { PapelContrato.Proprietario, PapelContrato.Locatario, PapelContrato.Fiador }
+                : new[] { PapelContrato.Proprietario, PapelContrato.Locatario },
 
             TipoContrato.Venda or TipoContrato.Compra
-                => new[] { PapelContrato.Comprador },
+                => new[] { PapelContrato.Proprietario, PapelContrato.Comprador },
 
             _ => Array.Empty<PapelContrato>()
         };
@@ -356,17 +356,38 @@ public class ContratoConviteService : IContratoConviteService
                 convite.Status = StatusConviteCadastro.Aprovado;
                 if (convite.PessoaId.HasValue)
                 {
-                    var jaExiste = await _db.Set<ContratoParte>()
-                        .AnyAsync(x => x.ContratoId == convite.ContratoId && x.PessoaId == convite.PessoaId.Value, ct);
-                    if (!jaExiste)
+                    if (convite.Papel == PapelContrato.Proprietario)
                     {
-                        _db.Set<ContratoParte>().Add(new ContratoParte
+                        var imovelId = convite.Contrato.ImovelId;
+                        var proprietarioJaExiste = await _db.Set<ImovelProprietario>()
+                            .AnyAsync(x => x.ImovelId == imovelId && x.PessoaId == convite.PessoaId.Value && x.Ativo, ct);
+
+                        if (!proprietarioJaExiste)
                         {
-                            Id = Guid.NewGuid(),
-                            ContratoId = convite.ContratoId,
-                            PessoaId = convite.PessoaId.Value,
-                            Papel = convite.Papel
-                        });
+                            _db.Set<ImovelProprietario>().Add(new ImovelProprietario
+                            {
+                                Id = Guid.NewGuid(),
+                                ImovelId = imovelId,
+                                PessoaId = convite.PessoaId.Value,
+                                Ativo = true,
+                                CriadoEm = DateTime.UtcNow
+                            });
+                        }
+                    }
+                    else
+                    {
+                        var jaExiste = await _db.Set<ContratoParte>()
+                            .AnyAsync(x => x.ContratoId == convite.ContratoId && x.PessoaId == convite.PessoaId.Value, ct);
+                        if (!jaExiste)
+                        {
+                            _db.Set<ContratoParte>().Add(new ContratoParte
+                            {
+                                Id = Guid.NewGuid(),
+                                ContratoId = convite.ContratoId,
+                                PessoaId = convite.PessoaId.Value,
+                                Papel = convite.Papel
+                            });
+                        }
                     }
                 }
                 break;

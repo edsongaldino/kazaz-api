@@ -56,6 +56,6 @@ public class UsuarioRepository : IUsuarioRepository
     }
 
     public async Task<Usuario?> ObterPorEmailAsync(string email) =>
-    await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == email);
+    await _context.Usuarios.IgnoreQueryFilters().Include(u => u.Perfil).FirstOrDefaultAsync(u => u.Email == email);
 
 }

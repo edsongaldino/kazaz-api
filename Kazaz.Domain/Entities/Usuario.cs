@@ -1,8 +1,10 @@
+using System;
 using System.ComponentModel.DataAnnotations;
+using Kazaz.Domain.Interfaces;
 
 namespace Kazaz.Domain.Entities
 {
-    public class Usuario
+    public class Usuario : IMultiTenant
     {
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
@@ -19,7 +21,10 @@ namespace Kazaz.Domain.Entities
         [Required]
         public required bool Ativo { get; set; }
 
-        public Guid PerfilId { get; set; }     // FK única
-        public Perfil Perfil { get; set; } = null!; // navegação única
+        public Guid PerfilId { get; set; }     // FK Ãšnica
+        public Perfil Perfil { get; set; } = null!; // navegaÃ§Ã£o Ãºnica
+
+        public Guid? ImobiliariaId { get; set; }
+        public Imobiliaria? Imobiliaria { get; set; }
     }
 }

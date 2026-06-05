@@ -1,12 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Kazaz.Domain.Interfaces;
 
 namespace Kazaz.Domain.Entities;
 
-public class Pessoa
+public class Pessoa : IMultiTenant
 {
     public Guid Id { get; set; }
     public Guid? EnderecoId { get; set; }
@@ -17,9 +15,12 @@ public class Pessoa
     public Guid? OrigemId { get; set; }
     public Origem? Origem { get; set; }
 
-	public Conjuge? Conjuge { get; set; }
-	public DadosComplementares? DadosComplementares { get; set; }
+    public Conjuge? Conjuge { get; set; }
+    public DadosComplementares? DadosComplementares { get; set; }
 
-	public ICollection<Contato> Contatos { get; set; } = new List<Contato>();
+    public ICollection<Contato> Contatos { get; set; } = new List<Contato>();
     public ICollection<ContratoParte> Contratos { get; set; } = new List<ContratoParte>();
+
+    public Guid? ImobiliariaId { get; set; }
+    public Imobiliaria? Imobiliaria { get; set; }
 }

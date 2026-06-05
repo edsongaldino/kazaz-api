@@ -1,4 +1,4 @@
-﻿namespace Kazaz.Application.DTOs;
+namespace Kazaz.Application.DTOs;
 
 public class DashboardResumoDto
 {
@@ -6,6 +6,8 @@ public class DashboardResumoDto
     public int TotalClientes { get; set; }
     public int TotalContratos { get; set; }
     public int TotalConvites { get; set; }
+    public int TotalImobiliarias { get; set; }
+    public int TotalUsuarios { get; set; }
 
     public int ImoveisAtivos { get; set; }
     public int ImoveisEmNegociacao { get; set; }
